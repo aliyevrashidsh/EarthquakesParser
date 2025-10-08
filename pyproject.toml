@@ -154,3 +154,8 @@ ignore_missing_imports = true
 [tool.bandit]
 exclude_dirs = ["tests", "sandbox"]
 skips = ["B101"]  # Skip assert_used check in tests
+
+[tool.flake8]
+per-file-ignores = [
+    "tests/*.py: D100,D101,D102,D103"
+]
