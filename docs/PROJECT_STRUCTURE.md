@@ -2,7 +2,7 @@
 
 ## Directory Layout
 
-```
+```bash
 earthquakes-parser/
 ├── .github/
 │   ├── workflows/
@@ -122,39 +122,54 @@ earthquakes-parser/
 ## Design Principles
 
 ### 1. Modularity
+
 Each component (search, parser, storage) is independent and can be used separately.
 
 ### 2. Extensibility
+
 Storage backends follow an abstract interface, making it easy to add new backends (e.g., MongoDB, PostgreSQL).
 
 ### 3. Backward Compatibility
+
 Original scripts (`main.py`, `test1-1.py`) are preserved and still functional.
 
 ### 4. Modern Tooling
+
 - **uv**: Fast package manager
 - **pytest**: Modern testing framework
 - **black/isort/flake8**: Code quality
 - **GitHub Actions**: CI/CD automation
 
 ### 5. Future-Ready
+
 - S3 storage prepared for cloud deployment
 - Extensible architecture
 - Type hints for better IDE support
 
 ## Data Flow
 
-```
-Keywords (keywords.txt)
-    ↓
-KeywordSearcher → Search Results (DataFrame)
-    ↓
-CSVStorage.save() → CSV File
-    ↓
-CSVStorage.load() → DataFrame
-    ↓
-ContentParser → Parsed Content (List[dict])
-    ↓
-CSVStorage.save() → JSON File
+```mermaid
+graph TD
+    A[Keywords (keywords.txt)]
+    A --> B[KeywordSearcher → Search Results (DataFrame)]
+    B --> C[CSVStorage.save() → CSV File]
+    C --> D[CSVStorage.load() → DataFrame]
+    D --> E[ContentParser → Parsed Content (List[dict])]
+    E --> F[CSVStorage.save() → JSON File]
+---
+
+### 💡 Notes
+
+- For **directory trees or terminal output**, use `bash` or `plaintext`.
+- For **code or configuration**, use the appropriate language (e.g., `python`, `yaml`, `json`).
+- For **diagrams**, you can optionally use `mermaid` if your markdown renderer supports it.
+
+---
+
+After you fix those two code blocks (around lines **5** and **151**), run:
+
+```bash
+pre-commit run --all-files
 ```
 
 ## Testing Strategy
@@ -181,4 +196,3 @@ CSVStorage.save() → JSON File
 - [ ] Web dashboard
 - [ ] Real-time monitoring
 - [ ] Publish to PyPI
-

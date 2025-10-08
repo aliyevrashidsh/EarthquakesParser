@@ -75,7 +75,7 @@ addopts = [
 [tool.coverage.run]
 source = ["earthquakes_parser"]
 omit = [
-    "*/tests/*", 
+    "*/tests/*",
     "*/__pycache__/*",
     "earthquakes_parser/some_module.py",   # Add more modules here
     "earthquakes_parser/experimental/*",   # Add a whole folder
