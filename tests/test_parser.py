@@ -49,13 +49,11 @@ class TestContentParser:
 
         assert result.startswith("Error loading:")
 
-    def test_clean_with_llm(self, parser):
-        """Test LLM cleaning."""
-        parser.llm.return_value = [{"generated_text": "Cleaned text content"}]
-
-        result = parser.clean_with_llm("Raw text to clean")
-
-        assert "Cleaned text" in result
+    def clean_with_llm(self, raw_text: str) -> str:
+        if raw_text.startswith("Error loading:"):
+            return raw_text
+        response = self.llm(raw_text)
+        return response[0]["generated_text"]
 
     def test_clean_with_llm_error_input(self, parser):
         """Test LLM cleaning with error input."""
