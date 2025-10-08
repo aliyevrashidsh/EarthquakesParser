@@ -1,8 +1,9 @@
 """Tests for storage backends."""
 
 import json
-import pytest
+
 import pandas as pd
+import pytest
 
 from earthquakes_parser.storage.csv_storage import CSVStorage
 
@@ -22,10 +23,12 @@ class TestCSVStorage:
 
     def test_save_and_load_dataframe(self, storage):
         """Test saving and loading a DataFrame."""
-        df = pd.DataFrame({
-            "query": ["test1", "test2"],
-            "link": ["http://example.com/1", "http://example.com/2"]
-        })
+        df = pd.DataFrame(
+            {
+                "query": ["test1", "test2"],
+                "link": ["http://example.com/1", "http://example.com/2"],
+            }
+        )
 
         storage.save(df, "test.csv")
         loaded_df = storage.load("test.csv")

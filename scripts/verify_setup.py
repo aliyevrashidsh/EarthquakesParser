@@ -83,9 +83,15 @@ def main():
     print("\n📚 Checking documentation...")
     all_checks.append(check_file_exists(root / "README.md", "Main README"))
     all_checks.append(check_file_exists(root / "docs" / "README.md", "Docs README"))
-    all_checks.append(check_file_exists(root / "docs" / "QUICK_START.md", "Quick Start"))
-    all_checks.append(check_file_exists(root / "docs" / "CONTRIBUTING.md", "Contributing guide"))
-    all_checks.append(check_file_exists(root / "docs" / "RELEASE_POLICY.md", "Release policy"))
+    all_checks.append(
+        check_file_exists(root / "docs" / "QUICK_START.md", "Quick Start")
+    )
+    all_checks.append(
+        check_file_exists(root / "docs" / "CONTRIBUTING.md", "Contributing guide")
+    )
+    all_checks.append(
+        check_file_exists(root / "docs" / "RELEASE_POLICY.md", "Release policy")
+    )
     all_checks.append(check_file_exists(root / "CHANGELOG.md", "Changelog"))
     all_checks.append(check_file_exists(root / "LICENSE", "License"))
 
@@ -117,13 +123,19 @@ def main():
 
     # Check original scripts (in examples/)
     print("\n📜 Checking original scripts...")
-    all_checks.append(check_file_exists(root / "examples" / "main.py", "Original search script"))
-    all_checks.append(check_file_exists(root / "examples" / "test1-1.py", "Original parser script"))
+    all_checks.append(
+        check_file_exists(root / "examples" / "main.py", "Original search script")
+    )
+    all_checks.append(
+        check_file_exists(root / "examples" / "test1-1.py", "Original parser script")
+    )
 
     # Check config directory
     print("\n⚙️  Checking configuration...")
     all_checks.append(check_directory_exists(root / "config", "Config directory"))
-    all_checks.append(check_file_exists(root / "config" / "keywords.txt", "Keywords file"))
+    all_checks.append(
+        check_file_exists(root / "config" / "keywords.txt", "Keywords file")
+    )
 
     # Check imports (only if package is installed)
     try:
@@ -131,9 +143,7 @@ def main():
         all_checks.append(import_ok)
     except Exception as e:
         print(f"\n⚠️  Import check skipped: {e}")
-        print(
-            "   Run 'uv pip install -e .' to install the package in development mode"
-        )
+        print("   Run 'uv pip install -e .' to install the package in development mode")
 
     # Summary
     print("\n" + "=" * 60)

@@ -1,7 +1,8 @@
 """Tests for the KeywordSearcher module."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from earthquakes_parser.search.searcher import KeywordSearcher, SearchResult
 
@@ -12,9 +13,7 @@ class TestSearchResult:
     def test_search_result_creation(self):
         """Test creating a SearchResult instance."""
         result = SearchResult(
-            query="earthquake",
-            link="https://example.com",
-            title="Test Article"
+            query="earthquake", link="https://example.com", title="Test Article"
         )
         assert result.query == "earthquake"
         assert result.link == "https://example.com"
@@ -23,15 +22,13 @@ class TestSearchResult:
     def test_to_dict(self):
         """Test converting SearchResult to dictionary."""
         result = SearchResult(
-            query="earthquake",
-            link="https://example.com",
-            title="Test"
+            query="earthquake", link="https://example.com", title="Test"
         )
         data = result.to_dict()
         assert data == {
             "query": "earthquake",
             "link": "https://example.com",
-            "title": "Test"
+            "title": "Test",
         }
 
 
@@ -48,7 +45,7 @@ class TestKeywordSearcher:
         assert searcher.delay == 0.1
         assert searcher.ddgs is not None
 
-    @patch('earthquakes_parser.search.searcher.DDGS')
+    @patch("earthquakes_parser.search.searcher.DDGS")
     def test_search_without_filter(self, mock_ddgs, searcher):
         """Test search without site filter."""
         mock_results = [
@@ -63,7 +60,7 @@ class TestKeywordSearcher:
         assert results[0].link == "https://example.com/1"
         assert results[0].query == "earthquake"
 
-    @patch('earthquakes_parser.search.searcher.DDGS')
+    @patch("earthquakes_parser.search.searcher.DDGS")
     def test_search_with_site_filter(self, mock_ddgs, searcher):
         """Test search with site filter."""
         mock_results = [
@@ -73,9 +70,7 @@ class TestKeywordSearcher:
         searcher.ddgs.text = MagicMock(return_value=iter(mock_results))
 
         results = searcher.search(
-            "earthquake",
-            max_results=5,
-            site_filter="instagram.com"
+            "earthquake", max_results=5, site_filter="instagram.com"
         )
 
         assert len(results) == 1

@@ -11,7 +11,9 @@ from earthquakes_parser import ContentParser, CSVStorage
 
 def main():
     # Initialize components
-    parser = ContentParser(model_name="google/flan-t5-small")  # smaller model for testing
+    parser = ContentParser(
+        model_name="google/flan-t5-small"
+    )  # smaller model for testing
     storage = CSVStorage(base_path="sandbox/data")
 
     # Load search results (assuming you've run example_search.py first)

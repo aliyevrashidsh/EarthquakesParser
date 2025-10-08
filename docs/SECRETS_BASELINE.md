@@ -29,14 +29,14 @@ Matches baseline? → ✅ Commit ALLOWED
 
 The tool scans for:
 
-- ✅ **AWS Keys** - `AKIAIOSFODNN7EXAMPLE`
-- ✅ **API Tokens** - `ghp_1234567890abcdef`
-- ✅ **Private Keys** - `-----BEGIN RSA PRIVATE KEY-----`
+- ✅ **AWS Keys** - `AKIAIOSFODNN7EXAMPLE` # pragma: allowlist secret
+- ✅ **API Tokens** - `ghp_1234567890abcdef` # pragma: allowlist secret
+- ✅ **Private Keys** - `-----BEGIN RSA PRIVATE KEY-----` # pragma: allowlist secret
 - ✅ **JWT Tokens** - JSON Web Tokens
 - ✅ **Passwords** - In variable names or values
-- ✅ **Database URLs** - `postgres://user:pass@host/db`
+- ✅ **Database URLs** - `postgres://user:pass@host/db` # pragma: allowlist secret
 - ✅ **High Entropy Strings** - Random-looking strings
-- ✅ **Basic Auth** - `username:password` patterns
+- ✅ **Basic Auth** - `username:password` patterns # pragma: allowlist secret
 
 ## File Structure
 
@@ -59,10 +59,10 @@ The tool scans for:
 
 ```python
 # Real credentials - BLOCKED!
-AWS_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-GITHUB_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuv"
-DATABASE_URL = "postgres://admin:secret123@localhost/prod"
-API_KEY = "sk-proj-abc123realkey456"
+AWS_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" # pragma: allowlist secret
+GITHUB_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuv" # pragma: allowlist secret
+DATABASE_URL = "postgres://admin:secret123@localhost/prod" # pragma: allowlist secret
+API_KEY = "sk-proj-abc123realkey456" # pragma: allowlist secret
 ```
 
 ### ✅ Safe Patterns
@@ -77,7 +77,7 @@ API_KEY = "YOUR_API_KEY_HERE"
 TOKEN = "<your-token>"
 
 # Test mocks (in baseline) - SAFE
-MOCK_KEY = "test-key-not-real"  # Added to baseline
+MOCK_KEY = "test-key-not-real"  # Added to baseline # pragma: allowlist secret
 ```
 
 ## Common Use Cases
@@ -87,7 +87,7 @@ MOCK_KEY = "test-key-not-real"  # Added to baseline
 ```python
 # tests/conftest.py
 # NOTE: This is a test key, not real
-TEST_API_KEY = "test-key-12345"  # Added to baseline
+TEST_API_KEY = "test-key-12345"  # Added to baseline # pragma: allowlist secret
 ```
 
 ### 2. Documentation Examples
@@ -95,14 +95,14 @@ TEST_API_KEY = "test-key-12345"  # Added to baseline
 ```python
 # docs/examples/auth.py
 # Example (not a real key):
-AWS_KEY = "AKIAIOSFODNN7EXAMPLE"  # In baseline
+AWS_KEY = "AKIAIOSFODNN7EXAMPLE"  # In baseline # pragma: allowlist secret
 ```
 
 ### 3. Demo/Public Keys
 
 ```python
 # config/demo.py
-DEMO_TOKEN = "demo-token-abc123"  # Safe in baseline
+DEMO_TOKEN = "demo-token-abc123"  # Safe in baseline # pragma: allowlist secret
 ```
 
 ## Managing the Baseline
@@ -157,10 +157,10 @@ TEST_KEY = "test-abc-123"  # Not a real key
 
 ```python
 # Never commit real secrets
-API_KEY = "sk-real-secret-key"  # BAD!
+API_KEY = "sk-real-secret-key"  # BAD! # pragma: allowlist secret
 
 # Don't hardcode passwords
-PASSWORD = "myPassword123"  # BAD!
+PASSWORD = "myPassword123"  # BAD! # pragma: allowlist secret
 
 # Don't commit .env files
 # Add .env to .gitignore!
@@ -170,7 +170,7 @@ PASSWORD = "myPassword123"  # BAD!
 
 ```bash
 # 1. Add code with test key
-echo 'TEST_KEY = "test-123"' > test.py
+echo 'TEST_KEY = "test-123"' > test.py # pragma: allowlist secret
 
 # 2. Try to commit
 git add test.py

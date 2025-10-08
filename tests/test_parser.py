@@ -1,8 +1,9 @@
 """Tests for the ContentParser module."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
 import pandas as pd
+import pytest
 
 from earthquakes_parser.parser.content_parser import ContentParser
 
@@ -13,7 +14,9 @@ class TestContentParser:
     @pytest.fixture
     def parser(self):
         """Create a ContentParser instance with mocked LLM."""
-        with patch('earthquakes_parser.parser.content_parser.pipeline') as mock_pipeline:
+        with patch(
+            "earthquakes_parser.parser.content_parser.pipeline"
+        ) as mock_pipeline:
             mock_pipeline.return_value = MagicMock()
             parser = ContentParser(model_name="test-model")
             return parser
@@ -24,8 +27,8 @@ class TestContentParser:
         assert parser.timeout == 15
         assert parser.llm is not None
 
-    @patch('earthquakes_parser.parser.content_parser.requests.get')
-    @patch('earthquakes_parser.parser.content_parser.trafilatura.extract')
+    @patch("earthquakes_parser.parser.content_parser.requests.get")
+    @patch("earthquakes_parser.parser.content_parser.trafilatura.extract")
     def test_extract_raw_text_success(self, mock_extract, mock_get, parser):
         """Test successful text extraction."""
         mock_get.return_value.text = "<html>test content</html>"
@@ -37,7 +40,7 @@ class TestContentParser:
         mock_get.assert_called_once()
         mock_extract.assert_called_once()
 
-    @patch('earthquakes_parser.parser.content_parser.requests.get')
+    @patch("earthquakes_parser.parser.content_parser.requests.get")
     def test_extract_raw_text_error(self, mock_get, parser):
         """Test text extraction with error."""
         mock_get.side_effect = Exception("Network error")
@@ -60,8 +63,8 @@ class TestContentParser:
 
         assert result == "Error loading: something"
 
-    @patch.object(ContentParser, 'extract_raw_text')
-    @patch.object(ContentParser, 'clean_with_llm')
+    @patch.object(ContentParser, "extract_raw_text")
+    @patch.object(ContentParser, "clean_with_llm")
     def test_parse_url(self, mock_clean, mock_extract, parser):
         """Test parsing a single URL."""
         mock_extract.return_value = "Raw text"
@@ -74,18 +77,20 @@ class TestContentParser:
         assert result["raw_text"] == "Raw text"
         assert result["main_text"] == "Cleaned text"
 
-    @patch.object(ContentParser, 'parse_url')
+    @patch.object(ContentParser, "parse_url")
     def test_parse_dataframe(self, mock_parse_url, parser):
         """Test parsing DataFrame of URLs."""
-        df = pd.DataFrame({
-            "link": ["https://example.com/1", "https://example.com/2"],
-            "query": ["test1", "test2"]
-        })
+        df = pd.DataFrame(
+            {
+                "link": ["https://example.com/1", "https://example.com/2"],
+                "query": ["test1", "test2"],
+            }
+        )
         mock_parse_url.return_value = {
             "query": "test",
             "link": "url",
             "raw_text": "raw",
-            "main_text": "clean"
+            "main_text": "clean",
         }
 
         results = parser.parse_dataframe(df)

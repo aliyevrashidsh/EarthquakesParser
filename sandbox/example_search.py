@@ -6,7 +6,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from earthquakes_parser import KeywordSearcher, CSVStorage
+from earthquakes_parser import CSVStorage, KeywordSearcher
 
 
 def main():

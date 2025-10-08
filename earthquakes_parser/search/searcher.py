@@ -116,9 +116,7 @@ class KeywordSearcher:
         Returns:
             DataFrame with columns: query, link, title.
         """
-        results = list(
-            self.search_keywords(keywords, max_results, site_filter)
-        )
+        results = list(self.search_keywords(keywords, max_results, site_filter))
         return pd.DataFrame([r.to_dict() for r in results])
 
     @staticmethod
