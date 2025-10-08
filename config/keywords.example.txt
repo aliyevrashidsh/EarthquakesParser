@@ -1,0 +1,39 @@
+# Example Keywords File
+# This is a template for creating your own keyword lists
+
+# Earthquake-specific terms
+earthquake
+seismic activity
+magnitude
+epicenter
+aftershock
+
+# Emergency response
+evacuation
+emergency shelter
+rescue team
+first aid
+
+# Damage and casualties
+casualties
+injured
+survivors
+destruction
+collapsed building
+
+# Infrastructure
+power outage
+no signal
+communication down
+
+# Other natural disasters
+tsunami
+flood
+wildfire
+hurricane
+tornado
+landslide
+
+# Emergency services
+emergency services
+disaster response

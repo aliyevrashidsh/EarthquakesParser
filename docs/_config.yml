@@ -1,0 +1,66 @@
+# GitHub Pages Configuration
+
+# Theme
+theme: jekyll-theme-cayman
+# Alternative themes:
+# - jekyll-theme-minimal
+# - jekyll-theme-architect
+# - jekyll-theme-slate
+# - jekyll-theme-modernist
+
+# Site settings
+title: EarthquakesParser
+description: A Python library for searching and parsing earthquake-related content from the web
+show_downloads: true
+google_analytics: # Add your GA tracking ID here
+
+# Repository info
+github:
+  repository_url: https://github.com/yourusername/earthquakes-parser
+  is_project_page: true
+
+# Build settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Quick Start
+    url: /QUICK_START
+  - title: Contributing
+    url: /CONTRIBUTING
+  - title: API Reference
+    url: /index#api-reference
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Include files
+include:
+  - _config.yml
+
+# Plugins
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+
+# SEO settings
+logo: # Add path to logo image
+twitter:
+  username: # Your Twitter username
+  card: summary
+
+# Footer
+footer_content: |
+  EarthquakesParser is licensed under the MIT License.
+  <br>Documentation built with <a href="https://pages.github.com">GitHub Pages</a>.

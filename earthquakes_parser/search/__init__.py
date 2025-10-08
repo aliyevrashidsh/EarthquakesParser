@@ -1,0 +1,5 @@
+"""Search module for keyword-based web searches."""
+
+from earthquakes_parser.search.searcher import KeywordSearcher
+
+__all__ = ["KeywordSearcher"]
