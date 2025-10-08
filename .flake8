@@ -11,6 +11,7 @@ exclude =
     *.egg-info,
     .tox,
     .pytest_cache,
-    sandbox/data
+    sandbox/data,
+    tests/*
 per-file-ignores =
     __init__.py:F401
