@@ -1,4 +1,8 @@
-"""EarthquakesParser - A library for searching and parsing earthquake-related content."""
+"""
+EarthquakesParser - A library for searching and parsing earthquakes.
+
+This library provides tools for earthquake-related content search and parsing.
+"""
 
 __version__ = "0.1.0"
 

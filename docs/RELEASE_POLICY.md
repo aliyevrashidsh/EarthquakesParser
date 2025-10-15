@@ -13,12 +13,14 @@ We follow [Semantic Versioning 2.0.0](https://semver.org/):
 ### Version Guidelines
 
 #### Major Version (Breaking Changes)
+
 - Removal of public APIs
 - Changes to existing API signatures
 - Major architectural changes
 - Removal of deprecated features
 
 #### Minor Version (New Features)
+
 - New features that don't break existing functionality
 - New storage backends
 - New optional parameters with defaults
@@ -26,6 +28,7 @@ We follow [Semantic Versioning 2.0.0](https://semver.org/):
 - Deprecation notices (with backward compatibility)
 
 #### Patch Version (Bug Fixes)
+
 - Bug fixes
 - Documentation updates
 - Internal refactoring
@@ -93,12 +96,14 @@ git push origin v0.2.0
 #### Step 5: Create GitHub Release
 
 The GitHub Actions workflow will automatically:
+
 1. Run all tests
 2. Build the package
 3. Create a GitHub Release with the tag
 4. Attach build artifacts
 
 Alternatively, create manually:
+
 1. Go to GitHub Releases page
 2. Click "Draft a new release"
 3. Select the tag (v0.2.0)
@@ -108,6 +113,7 @@ Alternatively, create manually:
 ### 3. Post-Release
 
 After release:
+
 - Announce release in project channels
 - Update documentation site (if applicable)
 - Monitor for issues
@@ -147,6 +153,7 @@ def old_function():
 For critical bugs in production:
 
 1. Create hotfix branch from release tag:
+
    ```bash
    git checkout -b hotfix/v0.1.1 v0.1.0
    ```
@@ -156,6 +163,7 @@ For critical bugs in production:
 3. Create PR to main
 
 4. After merge, create new tag:
+
    ```bash
    git tag -a v0.1.1 -m "Hotfix: critical bug"
    git push origin v0.1.1
@@ -164,6 +172,7 @@ For critical bugs in production:
 ## Release Artifacts
 
 Each release includes:
+
 - Source distribution (`.tar.gz`)
 - Wheel distribution (`.whl`)
 - Release notes

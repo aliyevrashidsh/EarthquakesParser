@@ -3,13 +3,14 @@
 import sys
 from pathlib import Path
 
+from earthquakes_parser import CSVStorage, KeywordSearcher
+
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from earthquakes_parser import CSVStorage, KeywordSearcher
-
 
 def main():
+    """Demonstrate searching for earthquake-related keywords."""
     # Initialize components
     searcher = KeywordSearcher(delay=1.0)
     storage = CSVStorage(base_path="sandbox/data")

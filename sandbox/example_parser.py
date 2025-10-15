@@ -3,13 +3,14 @@
 import sys
 from pathlib import Path
 
+from earthquakes_parser import ContentParser, CSVStorage
+
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from earthquakes_parser import ContentParser, CSVStorage
-
 
 def main():
+    """Demonstrate parsing earthquake-related web content."""
     # Initialize components
     parser = ContentParser(
         model_name="google/flan-t5-small"

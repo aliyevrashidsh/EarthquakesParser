@@ -1,12 +1,15 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 0 * * 1'  # Weekly on Monday
+  # Disabled for private repos (requires GitHub Advanced Security subscription)
+  # Uncomment triggers below if you enable code scanning or make the repo public
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   - cron: '0 0 * * 1'  # Weekly on Monday
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   analyze:
@@ -27,12 +30,12 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3

@@ -1,8 +1,8 @@
 # ✅ Final Clean Project Structure
 
-## Root Directory - Perfectly Organized!
+## Root Directory - Perfectly Organized
 
-```
+```text
 earthquakes-parser/
 ├── .flake8
 ├── .gitignore
@@ -29,7 +29,7 @@ earthquakes-parser/
 
 **New `config/` directory for all configuration files:**
 
-```
+```text
 config/
 ├── README.md                # Configuration guide
 ├── keywords.txt             # Russian disaster keywords (committed)
@@ -41,9 +41,11 @@ config/
 ### What Changed
 
 **Before:**
+
 - `keywords.txt` in root directory (messy)
 
 **After:**
+
 - `config/keywords.txt` (organized)
 - `config/keywords.example.txt` (template)
 - `config/README.md` (documentation)
@@ -98,11 +100,13 @@ All scripts updated to reference new config location:
 ## Git Configuration
 
 ### Tracked Files (Committed)
+
 - ✅ `config/keywords.txt`
 - ✅ `config/keywords.example.txt`
 - ✅ `config/README.md`
 
 ### Ignored Files (Local Only)
+
 - ❌ `config/keywords.local.txt`
 - ❌ `config/*.env`
 - ❌ `config/local_*.txt`
@@ -114,6 +118,7 @@ python scripts/verify_setup.py
 ```
 
 **Output:** ✅ 29/30 checks passed
+
 - All directories: ✅
 - All config files: ✅
 - Import check: ⚠️ (expected - package not installed)

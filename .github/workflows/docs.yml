@@ -1,12 +1,14 @@
 name: Deploy Documentation
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
-  workflow_dispatch:
+  # Disabled automatic deployment for private repos (GitHub Pages requires subscription)
+  # Uncomment the push trigger below if you enable GitHub Pages or make the repo public
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'docs/**'
+  #     - '.github/workflows/docs.yml'
+  workflow_dispatch:  # Manual trigger only
 
 permissions:
   contents: read

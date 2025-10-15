@@ -36,7 +36,7 @@ git push origin main
 
 Once deployed, your documentation will be available at:
 
-```
+```text
 https://yourusername.github.io/earthquakes-parser/
 ```
 
@@ -44,7 +44,7 @@ Replace `yourusername` with your GitHub username.
 
 ## Documentation Structure
 
-```
+```text
 docs/
 ├── index.md                # Homepage (required)
 ├── _config.yml             # Jekyll configuration
@@ -67,6 +67,7 @@ theme: jekyll-theme-minimal  # Change this line
 ```
 
 **Available themes:**
+
 - `jekyll-theme-cayman` (default, modern)
 - `jekyll-theme-minimal` (clean and simple)
 - `jekyll-theme-architect` (bold headers)
@@ -78,9 +79,9 @@ theme: jekyll-theme-minimal  # Change this line
 1. Add logo image to `docs/assets/logo.png`
 2. Update `_config.yml`:
 
-```yaml
-logo: /assets/logo.png
-```
+   ```yaml
+   logo: /assets/logo.png
+   ```
 
 ### Custom Colors
 
@@ -104,11 +105,13 @@ Create `docs/assets/css/style.scss`:
 ### Add Custom Pages
 
 1. Create new markdown file in `docs/`:
+
    ```bash
    touch docs/API_REFERENCE.md
    ```
 
 2. Add front matter:
+
    ```markdown
    ---
    title: API Reference
@@ -120,6 +123,7 @@ Create `docs/assets/css/style.scss`:
    ```
 
 3. Link from other pages:
+
    ```markdown
    [API Reference](API_REFERENCE.md)
    ```
@@ -227,13 +231,17 @@ google_analytics: G-XXXXXXXXXX
 
 1. Buy domain (e.g., `earthquakes-parser.com`)
 2. Add CNAME record pointing to:
-   ```
+
+   ```text
    yourusername.github.io
    ```
+
 3. Create `docs/CNAME` file:
-   ```
+
+   ```text
    earthquakes-parser.com
    ```
+
 4. Push to GitHub
 5. In repository settings, add custom domain
 
@@ -250,6 +258,7 @@ google_analytics: G-XXXXXXXXXX
 ### Build Failures
 
 Check the Actions log:
+
 1. Go to **Actions** tab
 2. Click on failed workflow
 3. Check error messages
@@ -291,4 +300,4 @@ git push
 
 ---
 
-**Your documentation is now live on GitHub Pages! 🎉**
+## Your documentation is now live on GitHub Pages

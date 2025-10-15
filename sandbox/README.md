@@ -4,7 +4,7 @@ This directory is for experimentation and testing the library functionality.
 
 ## Structure
 
-```
+```text
 sandbox/
 ├── README.md                    # This file
 ├── example_search.py            # Search functionality example
@@ -16,6 +16,7 @@ sandbox/
 ## Examples
 
 ### [example_search.py](example_search.py)
+
 Demonstrates keyword searching functionality using the library.
 
 ```bash
@@ -23,6 +24,7 @@ uv run python sandbox/example_search.py
 ```
 
 ### [example_parser.py](example_parser.py)
+
 Demonstrates content parsing functionality with LLM.
 
 ```bash
@@ -36,6 +38,7 @@ Results are saved to `sandbox/data/` directory (gitignored).
 ## Project Structure Documentation
 
 The [01_project_structure/](01_project_structure/) directory contains:
+
 - Project restructuring documentation
 - Setup summaries and guides
 - Historical record of organization decisions
@@ -46,7 +49,7 @@ See [01_project_structure/README.md](01_project_structure/README.md) for details
 
 Use numbered folders for organized experiments:
 
-```
+```text
 sandbox/
 ├── 01_project_structure/     # Setup docs
 ├── 02_async_search/           # Your experiment
@@ -92,4 +95,4 @@ uv run python sandbox/example_search.py
 
 ---
 
-**Happy experimenting! 🎪**
+## Happy experimenting

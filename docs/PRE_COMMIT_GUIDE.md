@@ -1,18 +1,20 @@
 # Pre-commit Hooks Guide
 
-Pre-commit hooks automatically check your code quality before each commit, ensuring consistent code standards across the project.
+Pre-commit hooks automatically check your code quality before each commit,
+ensuring consistent code standards across the project.
 
 ## What Are Pre-commit Hooks?
 
 Pre-commit hooks run automatically before `git commit` to:
-- ✅ Format code with **black**
-- ✅ Sort imports with **isort**
-- ✅ Lint code with **flake8**
-- ✅ Check for security issues with **bandit**
-- ✅ Detect secrets and credentials
-- ✅ Fix trailing whitespace and line endings
-- ✅ Validate YAML, JSON, and TOML files
-- ✅ Lint Markdown files
+
+- Format code with **black**
+- Sort imports with **isort**
+- Lint code with **flake8**
+- Check for security issues with **bandit**
+- Detect secrets and credentials
+- Fix trailing whitespace and line endings
+- Validate YAML, JSON, and TOML files
+- Lint Markdown files
 
 ## Installation
 
@@ -96,71 +98,83 @@ SKIP=flake8 git commit -m "skip flake8 only"
 ### Code Quality
 
 **Black** - Code formatter
-```bash
-# Formats Python code to consistent style
-# Line length: 88 characters
-# Automatically fixes issues
+
+```text
+Formats Python code to consistent style
+Line length: 88 characters
+Automatically fixes issues
 ```
 
 **isort** - Import sorter
-```bash
-# Sorts and organizes imports
-# Groups: stdlib, third-party, local
-# Compatible with black
+
+```text
+Sorts and organizes imports
+Groups: stdlib, third-party, local
+Compatible with black
 ```
 
 **Flake8** - Code linter
-```bash
-# Checks code style (PEP 8)
-# Detects common bugs
-# Enforces best practices
+
+```text
+Checks code style (PEP 8)
+Detects common bugs
+Enforces best practices
 ```
 
 ### Security
 
 **Bandit** - Security scanner
-```bash
-# Scans for common security issues
-# Checks for hardcoded passwords
-# Detects SQL injection risks
-# Finds insecure functions
+
+```text
+Scans for common security issues
+Checks for hardcoded passwords
+Detects SQL injection risks
+Finds insecure functions
 ```
 
 **detect-secrets** - Credential scanner
-```bash
-# Prevents committing secrets
-# Detects API keys, passwords
-# Checks base64 encoded strings
-# Finds JWT tokens
+
+```text
+Prevents committing secrets
+Detects API keys, passwords
+Checks base64 encoded strings
+Finds JWT tokens
 ```
 
 **detect-private-key** - SSH key scanner
-```bash
-# Prevents committing private keys
-# Detects RSA, DSA, EC keys
-# Finds PEM files
+
+```text
+Prevents committing private keys
+Detects RSA, DSA, EC keys
+Finds PEM files
 ```
 
 ### File Checks
 
 **trailing-whitespace** - Removes trailing spaces
+
 **end-of-file-fixer** - Ensures newline at end of file
+
 **mixed-line-ending** - Fixes CRLF/LF issues
+
 **check-merge-conflict** - Detects merge conflict markers
 
 ### Syntax Validation
 
 **check-yaml** - Validates YAML files
+
 **check-json** - Validates JSON files
+
 **check-toml** - Validates TOML files
 
 ### Markdown
 
 **markdownlint** - Lints and fixes Markdown
-```bash
-# Checks markdown syntax
-# Fixes common issues
-# Enforces consistent style
+
+```text
+Checks markdown syntax
+Fixes common issues
+Enforces consistent style
 ```
 
 ## Configuration
@@ -216,6 +230,7 @@ pre-commit run --files path/to/file.py
 ### Black/Flake8 conflict
 
 Black and flake8 are configured to work together:
+
 - Line length: 88 (black default)
 - Flake8 ignores: E203, W503 (black-compatible)
 
@@ -250,6 +265,7 @@ Pre-commit hooks also run in CI pipeline ([.github/workflows/ci.yml](../.github/
 ## Best Practices
 
 ### 1. Install Early
+
 ```bash
 # Right after cloning
 git clone <repo>
@@ -258,6 +274,7 @@ pre-commit install
 ```
 
 ### 2. Run Before Push
+
 ```bash
 # Check everything before pushing
 pre-commit run --all-files
@@ -265,12 +282,14 @@ git push
 ```
 
 ### 3. Keep Updated
+
 ```bash
 # Update monthly
 pre-commit autoupdate
 ```
 
 ### 4. Don't Bypass Without Reason
+
 ```bash
 # ❌ Bad: Bypass to avoid fixing issues
 git commit --no-verify
@@ -282,6 +301,7 @@ git commit
 ```
 
 ### 5. Configure for Your Needs
+
 ```bash
 # Disable specific hooks if needed
 # Edit .pre-commit-config.yaml
@@ -310,7 +330,7 @@ git commit -m "add example"
 
 ```bash
 # Add code with hardcoded password
-echo 'password = "secret123"' >> config.py
+echo 'password = "secret123"' >> config.py  # pragma: allowlist secret
 
 # Try to commit
 git commit -m "add config"
@@ -319,7 +339,7 @@ git commit -m "add config"
 # Commit blocked
 
 # Fix issue
-echo 'password = os.getenv("PASSWORD")' > config.py
+echo 'password = os.getenv("PASSWORD")' > config.py  # pragma: allowlist secret
 git commit -m "add config"
 # Success!
 ```
@@ -362,21 +382,27 @@ git commit --no-verify
 ## FAQ
 
 **Q: Do I need to run hooks manually?**
+
 A: No, they run automatically on commit after installation.
 
 **Q: Can I disable a specific hook?**
+
 A: Yes, comment it out in `.pre-commit-config.yaml` or use `SKIP=hook_id`.
 
 **Q: Why did my commit fail?**
+
 A: A hook detected an issue. Check the output and fix it.
 
 **Q: Can hooks modify files?**
+
 A: Yes, some hooks (black, isort) auto-fix files and stage changes.
 
 **Q: Do hooks run in CI?**
+
 A: Yes, configured in `.github/workflows/ci.yml`.
 
 **Q: Are hooks required?**
+
 A: Strongly recommended. Ensures code quality and catches issues early.
 
 ## Resources
@@ -389,4 +415,4 @@ A: Strongly recommended. Ensures code quality and catches issues early.
 
 ---
 
-**Pre-commit hooks keep your code clean, secure, and consistent! 🚀**
+## Pre-commit hooks keep your code clean, secure, and consistent

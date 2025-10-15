@@ -14,30 +14,30 @@ Thank you for considering contributing to EarthquakesParser! This document provi
 
 1. **Fork and clone the repository**
 
-```bash
-git clone https://github.com/yourusername/earthquakes-parser.git
-cd earthquakes-parser
-```
+   ```bash
+   git clone https://github.com/yourusername/earthquakes-parser.git
+   cd earthquakes-parser
+   ```
 
-2. **Install uv** (if not already installed)
+1. **Install uv** (if not already installed)
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
 
-3. **Set up virtual environment and install dependencies**
+1. **Set up virtual environment and install dependencies**
 
-```bash
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install -e ".[dev]"
-```
+   ```bash
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   uv pip install -e ".[dev]"
+   ```
 
-4. **Verify installation**
+1. **Verify installation**
 
-```bash
-pytest
-```
+   ```bash
+   pytest
+   ```
 
 ## Development Workflow
 
@@ -129,23 +129,23 @@ git commit -m "docs: update README with S3 storage examples"
 
 1. **Push your branch**
 
-```bash
-git push origin feature/your-feature-name
-```
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-2. **Create a Pull Request** on GitHub
+1. **Create a Pull Request** on GitHub
 
-3. **Fill out the PR template** with:
+1. **Fill out the PR template** with:
    - Description of changes
    - Related issues
    - Testing performed
    - Checklist completion
 
-4. **Wait for review** - maintainers will review your PR and may request changes
+1. **Wait for review** - maintainers will review your PR and may request changes
 
-5. **Address feedback** - make requested changes and push updates
+1. **Address feedback** - make requested changes and push updates
 
-6. **Merge** - once approved, a maintainer will merge your PR
+1. **Merge** - once approved, a maintainer will merge your PR
 
 ## Code Style
 
@@ -178,7 +178,7 @@ def search(self, query: str, max_results: int = 5) -> List[SearchResult]:
 
 ## Project Structure
 
-```
+```text
 earthquakes-parser/
 ├── earthquakes_parser/     # Main package
 │   ├── search/            # Search functionality
@@ -187,7 +187,7 @@ earthquakes-parser/
 ├── tests/                 # Test suite
 ├── sandbox/               # Experiments and examples
 ├── .github/               # GitHub Actions workflows
-└── docs/                  # Documentation (future)
+└── docs/                  # Documentation
 ```
 
 ## Testing Guidelines
@@ -270,6 +270,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 ## Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributors page
 - CHANGELOG.md for significant contributions
 - Future documentation

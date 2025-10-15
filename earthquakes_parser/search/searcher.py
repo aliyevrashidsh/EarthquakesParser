@@ -11,6 +11,13 @@ class SearchResult:
     """Represents a single search result."""
 
     def __init__(self, query: str, link: str, title: Optional[str] = None):
+        """Initialize a search result.
+
+        Args:
+            query: The search query used.
+            link: URL of the search result.
+            title: Title of the search result page.
+        """
         self.query = query
         self.link = link
         self.title = title
