@@ -14,6 +14,7 @@ Complete documentation for the EarthquakesParser project.
 ## For Users
 
 ### Getting Started
+
 1. Start with [Quick Start Guide](QUICK_START.md)
 2. Review examples in `../sandbox/` and `../examples/`
 3. Check the [Main README](../README.md) for API documentation
@@ -23,6 +24,7 @@ Complete documentation for the EarthquakesParser project.
 The EarthquakesParser library provides three main modules:
 
 #### Search Module
+
 ```python
 from earthquakes_parser import KeywordSearcher
 
@@ -33,6 +35,7 @@ results = searcher.search("earthquake", max_results=5)
 See [Quick Start Guide](QUICK_START.md#search-examples) for more examples.
 
 #### Parser Module
+
 ```python
 from earthquakes_parser import ContentParser
 
@@ -43,6 +46,7 @@ result = parser.parse_url("https://example.com/article")
 See [Quick Start Guide](QUICK_START.md#parser-examples) for more examples.
 
 #### Storage Module
+
 ```python
 from earthquakes_parser.storage import CSVStorage
 
@@ -55,21 +59,27 @@ See [Quick Start Guide](QUICK_START.md#storage-examples) for more examples.
 ## For Developers
 
 ### Contributing
+
 Read [Contributing Guidelines](CONTRIBUTING.md) for:
+
 - Setting up development environment
 - Code style and quality standards
 - Testing requirements
 - Pull request process
 
 ### Architecture
+
 See [Project Structure](PROJECT_STRUCTURE.md) for:
+
 - Directory layout
 - Module descriptions
 - Design principles
 - Data flow diagrams
 
 ### Releases
+
 Check [Release Policy](RELEASE_POLICY.md) for:
+
 - Semantic versioning guidelines
 - Release process
 - Deprecation policy
@@ -77,7 +87,7 @@ Check [Release Policy](RELEASE_POLICY.md) for:
 
 ## Project Files
 
-```
+```text
 docs/
 ├── README.md              # This file
 ├── QUICK_START.md         # 5-minute getting started

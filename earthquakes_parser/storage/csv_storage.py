@@ -1,7 +1,6 @@
 """CSV file storage backend."""
 
 import json
-import os
 from pathlib import Path
 from typing import Any, List, Union
 

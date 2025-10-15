@@ -1,27 +1,32 @@
-# ✅ Pre-commit Hooks Added!
+# ✅ Pre-commit Hooks Added
 
 ## What Was Added
 
 ### 1. Pre-commit Configuration
+
 **[.pre-commit-config.yaml](.pre-commit-config.yaml)** - Main config with hooks:
-- ✅ **Black** - Code formatting
-- ✅ **isort** - Import sorting
-- ✅ **Flake8** - Code linting
-- ✅ **Bandit** - Security scanning
-- ✅ **detect-secrets** - Credential detection
-- ✅ **Markdownlint** - Markdown formatting
-- ✅ File checks (whitespace, line endings, YAML/JSON/TOML validation)
+
+- **Black** - Code formatting
+- **isort** - Import sorting
+- **Flake8** - Code linting
+- **Bandit** - Security scanning
+- **detect-secrets** - Credential detection
+- **Markdownlint** - Markdown formatting
+- File checks (whitespace, line endings, YAML/JSON/TOML validation)
 
 ### 2. Configuration Files
+
 - **[.secrets.baseline](.secrets.baseline)** - Secrets detection baseline
 - **[.markdownlint.json](.markdownlint.json)** - Markdown linting rules
 - Updated **[pyproject.toml](pyproject.toml)** - Added bandit config & pre-commit to dev deps
 
 ### 3. Documentation
+
 - **[docs/PRE_COMMIT_GUIDE.md](docs/PRE_COMMIT_GUIDE.md)** - Complete usage guide
 - Updated **[README.md](README.md)** - Added pre-commit section
 
 ### 4. CI Integration
+
 - Updated **[.github/workflows/ci.yml](.github/workflows/ci.yml)** - Runs pre-commit in CI
 
 ## Quick Setup
@@ -40,6 +45,7 @@ pre-commit run --all-files
 ## How It Works
 
 ### Automatic (On Commit)
+
 ```bash
 git add .
 git commit -m "feat: add feature"
@@ -53,6 +59,7 @@ git commit -m "feat: add feature"
 ```
 
 ### Manual
+
 ```bash
 # Run all hooks
 pre-commit run --all-files
@@ -80,26 +87,31 @@ pre-commit run black --all-files
 ## Benefits
 
 ### 🛡️ Prevents Issues Before Commit
+
 - No more "fix linting" commits
 - Catches security issues early
 - Prevents committing secrets
 
 ### 🎨 Consistent Code Style
+
 - Automatic formatting with black
 - Sorted imports with isort
 - Enforces PEP 8 with flake8
 
 ### 🔒 Security
+
 - Scans for common vulnerabilities
 - Detects hardcoded secrets
 - Prevents private key commits
 
 ### 🚀 Faster Reviews
+
 - Code already formatted
 - Fewer style comments
 - Focus on logic, not style
 
 ### ⚙️ CI Integration
+
 - Same checks locally and in CI
 - Faster CI (pre-validated)
 - Fewer CI failures
@@ -107,6 +119,7 @@ pre-commit run black --all-files
 ## Common Workflows
 
 ### First Time Setup
+
 ```bash
 # Clone and setup
 git clone <repo>
@@ -118,6 +131,7 @@ pre-commit install
 ```
 
 ### Daily Development
+
 ```bash
 # Work on code
 vim earthquakes_parser/search/searcher.py
@@ -133,6 +147,7 @@ git commit -m "feat: improve search"
 ```
 
 ### Before Pull Request
+
 ```bash
 # Run all checks
 pre-commit run --all-files
@@ -145,6 +160,7 @@ git push
 ```
 
 ### Emergency Bypass
+
 ```bash
 # Only when absolutely necessary!
 git commit --no-verify -m "emergency: critical fix"
@@ -153,6 +169,7 @@ git commit --no-verify -m "emergency: critical fix"
 ## Example: Hooks in Action
 
 ### Example 1: Auto-formatting
+
 ```bash
 # Write unformatted code
 echo "x=1+2" >> test.py
@@ -165,9 +182,10 @@ git commit -m "add test"
 ```
 
 ### Example 2: Security Caught
+
 ```bash
 # Hardcode password
-echo 'PASSWORD = "secret"' >> config.py
+echo 'PASSWORD = "secret"' >> config.py  # pragma: allowlist secret
 git add config.py
 git commit -m "config"
 
@@ -182,9 +200,10 @@ git commit -m "config"
 ```
 
 ### Example 3: Linting Issue
+
 ```bash
 # Write code with unused import
-echo "import os\nprint('hi')" >> test.py
+echo "import os\nprint('hi')" >> test.py  # pragma: allowlist secret
 git add test.py
 git commit -m "test"
 
@@ -248,6 +267,7 @@ pre-commit uninstall
 ## Troubleshooting
 
 ### "pre-commit: command not found"
+
 ```bash
 # Install with dev dependencies
 uv pip install -e ".[dev]"
@@ -257,6 +277,7 @@ pip install pre-commit
 ```
 
 ### "Hook failed"
+
 ```bash
 # See what failed
 git status
@@ -270,6 +291,7 @@ pre-commit run --all-files
 ```
 
 ### "Too slow"
+
 ```bash
 # Skip specific hook temporarily
 SKIP=mypy git commit -m "..."
@@ -280,11 +302,11 @@ SKIP=mypy git commit -m "..."
 ## Resources
 
 - **Full Guide**: [docs/PRE_COMMIT_GUIDE.md](docs/PRE_COMMIT_GUIDE.md)
-- **Pre-commit Docs**: https://pre-commit.com/
-- **Black**: https://black.readthedocs.io/
-- **Flake8**: https://flake8.pycqa.org/
-- **Bandit**: https://bandit.readthedocs.io/
+- **Pre-commit Docs**: <https://pre-commit.com/>
+- **Black**: <https://black.readthedocs.io/>
+- **Flake8**: <https://flake8.pycqa.org/>
+- **Bandit**: <https://bandit.readthedocs.io/>
 
 ---
 
-**Your code quality is now protected! 🛡️**
+## Your code quality is now protected

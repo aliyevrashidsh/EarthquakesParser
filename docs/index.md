@@ -85,7 +85,7 @@ storage.save_records(parsed, "parsed_content.json")
 
 ## Project Structure
 
-```
+```text
 earthquakes-parser/
 ├── earthquakes_parser/     # Main library
 │   ├── search/            # Search functionality
@@ -130,6 +130,7 @@ searcher = KeywordSearcher(delay=1.0)
 ```
 
 **Methods:**
+
 - `search(query, max_results=5, site_filter=None)` - Search for a query
 - `search_keywords(keywords, max_results=5, site_filter=None)` - Search multiple keywords
 - `search_to_dataframe(keywords, max_results=5, site_filter=None)` - Return as DataFrame
@@ -150,6 +151,7 @@ parser = ContentParser(
 ```
 
 **Methods:**
+
 - `extract_raw_text(url)` - Extract text with trafilatura
 - `clean_with_llm(raw_text)` - Clean text with LLM
 - `parse_url(url, query=None)` - Parse single URL
@@ -167,6 +169,7 @@ storage = CSVStorage(base_path="data")
 ```
 
 **Methods:**
+
 - `save(data, key)` - Save data
 - `load(key)` - Load data
 - `exists(key)` - Check if exists
@@ -190,7 +193,7 @@ Same methods as CSVStorage, but stores in AWS S3.
 
 Keywords are stored in `config/keywords.txt` (one per line):
 
-```
+```text
 землетрясение
 магнитуда
 эпицентр
@@ -237,6 +240,7 @@ uv run bandit -r earthquakes_parser
 ## CI/CD
 
 GitHub Actions automatically:
+
 - ✅ Run tests on Python 3.9, 3.10, 3.11, 3.12
 - ✅ Check code quality (black, isort, flake8)
 - ✅ Run security scans (bandit, CodeQL)
@@ -256,6 +260,7 @@ MIT License - see [LICENSE](../LICENSE) for details.
 ## Credits
 
 Built with:
+
 - [DuckDuckGo Search](https://pypi.org/project/ddgs/)
 - [Trafilatura](https://trafilatura.readthedocs.io/)
 - [Transformers](https://huggingface.co/transformers/)

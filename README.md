@@ -1,6 +1,7 @@
 # EarthquakesParser
 
-A Python library for searching and parsing earthquake-related content from the web. This library provides tools for keyword-based web searches, content extraction, and storage management with support for both CSV and S3 backends.
+A Python library for searching and parsing earthquake-related content from the web. This library provides tools for
+keyword-based web searches, content extraction, and storage management with support for both CSV and S3 backends.
 
 ## Features
 
@@ -100,7 +101,7 @@ df = storage.load("results.csv")
 
 ## Project Structure
 
-```
+```text
 earthquakes-parser/
 ├── earthquakes_parser/     # Main library package
 │   ├── search/            # Search functionality
@@ -200,7 +201,7 @@ uv run python sandbox/example_parser.py
 
 Keywords are stored in [config/keywords.txt](config/keywords.txt). One keyword per line:
 
-```
+```text
 землетрясение
 магнитуда
 эпицентр
@@ -261,6 +262,7 @@ MIT License - see LICENSE file for details
 ## Credits
 
 Built with:
+
 - [DuckDuckGo Search](https://pypi.org/project/ddgs/) for web searches
 - [Trafilatura](https://trafilatura.readthedocs.io/) for content extraction
 - [Transformers](https://huggingface.co/transformers/) for LLM-based cleaning

@@ -39,7 +39,7 @@ assignees: ''
 
 ## Error Message/Traceback
 
-```
+```text
 # Paste the full error message or traceback here
 ```
 
