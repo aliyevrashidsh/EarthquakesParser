@@ -1,0 +1,7 @@
+# Ignore generated data files
+*/data/
+*.csv
+*.json
+
+# But keep the directory structure
+!.gitkeep
