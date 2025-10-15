@@ -1,13 +1,15 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 0 * * 1'  # Weekly on Monday
-  workflow_dispatch:  # Allow manual trigger
+  # Disabled for private repos (requires GitHub Advanced Security subscription)
+  # Uncomment triggers below if you enable code scanning or make the repo public
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  # schedule:
+  #   - cron: '0 0 * * 1'  # Weekly on Monday
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   analyze:
