@@ -7,7 +7,7 @@ keyword-based web searches, content extraction, and storage management with supp
 
 - 🔍 **Keyword Search**: Search for earthquake-related content using DuckDuckGo
 - 📄 **Content Parsing**: Extract and clean web content using trafilatura and LLM
-- 💾 **Flexible Storage**: Support for CSV files and AWS S3 (extensible for other backends)
+- 💾 **Flexible Storage**: Support for CSV files, AWS S3, and Supabase (database + object storage)
 - 🧪 **Well-tested**: Comprehensive test suite with pytest
 - 📦 **Modern Tooling**: Uses `uv` for fast dependency management
 
@@ -35,9 +35,13 @@ uv pip install -e ".[dev]"
 pip install -e ".[dev]"
 ```
 
-### For S3 support
+### For Storage Options
 
 ```bash
+# For Supabase support (recommended for fake detection project)
+uv pip install -e ".[supabase]"
+
+# For AWS S3 support
 uv pip install -e ".[s3]"
 ```
 
@@ -83,6 +87,28 @@ results = parser.parse_csv("web_results.csv")
 # Save parsed content
 storage.save_records(results, "parsed_content.json")
 ```
+
+### Using Supabase Storage (Recommended)
+
+```python
+from earthquakes_parser import SupabaseStorage
+
+# Initialize Supabase storage (uses SUPABASE_URL and SUPABASE_KEY env vars)
+storage = SupabaseStorage()
+
+# Save search results to database
+inserted_ids = storage.save_search_results(results_df)
+
+# Check if URL exists (deduplication)
+if not storage.url_exists("https://example.com"):
+    # Download and save HTML to storage
+    storage.save_html_to_storage(html_content, url, search_result_id)
+
+# Get pending URLs for processing
+pending_df = storage.get_pending_urls(limit=100)
+```
+
+See [docs/SUPABASE_USAGE.md](docs/SUPABASE_USAGE.md) for complete guide.
 
 ### Using S3 Storage
 
@@ -213,7 +239,14 @@ See [config/README.md](config/README.md) for more configuration options.
 
 ### Environment Variables
 
-For S3 storage, configure AWS credentials:
+#### For Supabase Storage (Recommended)
+
+```bash
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_KEY="your-service-role-key"
+```
+
+#### For AWS S3 Storage
 
 ```bash
 export AWS_ACCESS_KEY_ID=your_key_id
@@ -246,6 +279,7 @@ See [RELEASE_POLICY.md](RELEASE_POLICY.md) for detailed release guidelines.
 ## Documentation
 
 - **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
+- **[Supabase Usage Guide](docs/SUPABASE_USAGE.md)** - Complete Supabase integration guide
 - **[Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute
 - **[Release Policy](docs/RELEASE_POLICY.md)** - Versioning and releases
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture overview

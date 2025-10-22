@@ -11,9 +11,21 @@ from earthquakes_parser.search.searcher import KeywordSearcher
 from earthquakes_parser.storage.base import StorageBackend
 from earthquakes_parser.storage.csv_storage import CSVStorage
 
-__all__ = [
-    "KeywordSearcher",
-    "ContentParser",
-    "StorageBackend",
-    "CSVStorage",
-]
+# Optional imports - don't fail if dependencies not installed
+try:
+    from earthquakes_parser.storage.supabase_storage import SupabaseStorage
+
+    __all__ = [
+        "KeywordSearcher",
+        "ContentParser",
+        "StorageBackend",
+        "CSVStorage",
+        "SupabaseStorage",
+    ]
+except ImportError:
+    __all__ = [
+        "KeywordSearcher",
+        "ContentParser",
+        "StorageBackend",
+        "CSVStorage",
+    ]
