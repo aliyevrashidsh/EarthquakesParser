@@ -77,14 +77,6 @@ repos:
         additional_dependencies: [types-requests, types-beautifulsoup4]
         args: ['--ignore-missing-imports']
 
-  # Markdown linting
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.38.0
-    hooks:
-      - id: markdownlint
-        name: Lint Markdown files
-        args: ['--fix']
-
   # Check for common security issues
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
