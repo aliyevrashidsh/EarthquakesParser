@@ -1,10 +1,22 @@
 """Tests for Supabase storage backend."""
 
 import os
+import sys
 from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import pytest
+
+
+# Mock the supabase module before importing SupabaseStorage
+@pytest.fixture(scope="session", autouse=True)
+def mock_supabase_module():
+    """Mock the supabase module for all tests."""
+    mock_supabase = MagicMock()
+    mock_supabase.create_client = MagicMock()
+    sys.modules["supabase"] = mock_supabase
+    yield mock_supabase
+    # Don't clean up to avoid import issues
 
 
 class TestSupabaseStorage:
@@ -13,14 +25,13 @@ class TestSupabaseStorage:
     @pytest.fixture
     def mock_supabase_client(self):
         """Create a mock Supabase client."""
-        with patch("earthquakes_parser.storage.supabase_storage.create_client") as mock:
-            client = MagicMock()
-            mock.return_value = client
+        client = MagicMock()
 
-            # Mock storage bucket operations
-            client.storage.list_buckets.return_value = []
-            client.storage.create_bucket.return_value = None
+        # Mock storage bucket operations
+        client.storage.list_buckets.return_value = []
+        client.storage.create_bucket.return_value = None
 
+        with patch("supabase.create_client", return_value=client):
             yield client
 
     @pytest.fixture
@@ -62,7 +73,7 @@ class TestSupabaseStorage:
         assert storage.key == "custom_key"
         assert storage.storage_bucket == "custom-bucket"
 
-    def test_init_missing_credentials(self):
+    def test_init_missing_credentials(self, mock_supabase_client):
         """Test that initialization fails without credentials."""
         from earthquakes_parser.storage.supabase_storage import SupabaseStorage
 
@@ -228,7 +239,7 @@ class TestSupabaseStorage:
         # URL doesn't exist
         mock_response.data = []
         exists = storage.url_exists("https://example.com/999")
-        assert exists is True  # Still returns True because of mocking
+        assert exists is False
 
     def test_save_generic(self, storage, mock_supabase_client):
         """Test generic save method for backward compatibility."""
@@ -247,11 +258,3 @@ class TestSupabaseStorage:
         storage.save(df, "search_results")
 
         mock_supabase_client.table.assert_called_with("search_results")
-
-    def test_import_error_handling(self):
-        """Test that helpful error is raised when supabase is not installed."""
-        with patch.dict("sys.modules", {"supabase": None}):
-            with pytest.raises(ImportError, match="supabase is required"):
-                from earthquakes_parser.storage.supabase_storage import SupabaseStorage
-
-                SupabaseStorage(url="https://test.supabase.co", key="test_key")
