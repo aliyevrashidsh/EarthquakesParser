@@ -39,13 +39,36 @@ Thank you for considering contributing to EarthquakesParser! This document provi
    pytest
    ```
 
+## Branching Strategy
+
+This project follows a **Git Flow** branching model:
+
+- **`main`** - Production-ready code, always deployable
+- **`dev`** - Integration branch for features, merge target for all feature branches
+- **`feature/*`** - Feature development branches
+- **`fix/*`** - Bug fix branches
+- **`release/*`** - Release preparation branches (created automatically)
+
+### Branch Flow
+
+```text
+feature/* ──→ dev ──→ main (via release PR)
+                         │
+                         └──→ Tagged Release (v1.0.0)
+```
+
 ## Development Workflow
 
 ### Creating a Branch
 
-Create a feature branch for your work:
+Always branch from `dev`:
 
 ```bash
+# Switch to dev and update
+git checkout dev
+git pull origin dev
+
+# Create feature branch
 git checkout -b feature/your-feature-name
 # or
 git checkout -b fix/your-bug-fix
@@ -125,7 +148,17 @@ git commit -m "fix: handle empty search results gracefully"
 git commit -m "docs: update README with S3 storage examples"
 ```
 
+**Important:** Commit messages are validated by pre-commit hooks.
+See [COMMIT_CONVENTION.md](COMMIT_CONVENTION.md) for detailed guidelines.
+
 ### Submitting a Pull Request
+
+**Target Branch:** All PRs should target the `dev` branch, not `main`.
+
+```bash
+# Make sure you're creating PR to dev
+gh pr create --base dev --head feature/your-feature-name
+```
 
 1. **Push your branch**
 
@@ -262,6 +295,98 @@ See [RELEASE_POLICY.md](RELEASE_POLICY.md) for the complete release process.
 - Trolling or insulting comments
 - Publishing others' private information
 - Unprofessional conduct
+
+## Release Workflow
+
+### Version Bumping Strategy
+
+The project follows [Semantic Versioning](https://semver.org/).
+Version bumps are determined automatically based on commit types:
+
+| Commit Type | Version Bump | Example |
+|-------------|--------------|---------|
+| `fix:` | **PATCH** | 0.1.0 → 0.1.1 |
+| `feat:` | **MINOR** | 0.1.0 → 0.2.0 |
+| `BREAKING CHANGE:` or `!` | **MAJOR** | 0.1.0 → 1.0.0 |
+| Other types (`docs:`, `style:`, `refactor:`, `test:`, `chore:`, etc.) | **No bump** | - |
+
+**Important:**
+
+- Only `feat:` and `fix:` trigger version bumps
+- Other commit types (`docs:`, `style:`, `refactor:`, `test:`, `chore:`) do NOT trigger version bumps
+- Breaking changes (`!` or `BREAKING CHANGE:`) always trigger a MAJOR bump, regardless of type
+
+#### Examples
+
+```bash
+# PATCH bump (0.1.0 → 0.1.1)
+fix(parser): handle empty content
+
+# MINOR bump (0.1.0 → 0.2.0)
+feat(search): add Instagram filter
+
+# MAJOR bump (0.1.0 → 1.0.0)
+feat(storage)!: change API signature
+
+BREAKING CHANGE: save() now requires 'key' parameter
+
+# No version bump
+docs: update README
+test: add parser tests
+refactor: simplify search logic
+```
+
+### Creating a Release
+
+Releases are created from the `dev` branch when ready:
+
+1. **Maintainer runs release workflow** (GitHub Actions)
+
+   ```bash
+   # Go to Actions → Create Release PR → Run workflow
+   # Select version bump type (auto/major/minor/patch)
+   ```
+
+1. **Automated PR is created** from `dev` to `main`
+   - Version is bumped in `pyproject.toml` and `__init__.py`
+   - CHANGELOG.md is updated with categorized commits
+   - PR includes all changes since last release
+
+1. **Review and merge PR** to `main`
+
+1. **Automatic release creation**
+   - GitHub Release is created with tag (e.g., `v0.2.0`)
+   - Distribution packages are built
+   - Release notes are generated from CHANGELOG.md
+
+### Manual Release (Alternative)
+
+If you need to create a release manually:
+
+```bash
+# From dev branch
+git checkout dev
+git pull origin dev
+
+# Run version bump script
+python scripts/bump_version.py --type auto
+
+# Review changes
+git diff
+
+# Commit and push
+git add .
+git commit -m "chore(release): bump version to X.Y.Z"
+git push origin dev
+
+# Merge dev to main
+git checkout main
+git merge dev
+git push origin main
+
+# Push the tag (created by bump_version.py)
+git push origin vX.Y.Z
+```
 
 ## License
 

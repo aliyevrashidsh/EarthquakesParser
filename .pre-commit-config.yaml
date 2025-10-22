@@ -86,5 +86,25 @@ repos:
         args: ['--baseline', '.secrets.baseline']
         exclude: package.lock.json
 
+  # Commit message validation
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        name: Check commit message format
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - perf
+          - test
+          - build
+          - ci
+          - chore
+          - revert
+
 # CI skip option for emergency commits
 # Use: git commit --no-verify -m "emergency fix"
