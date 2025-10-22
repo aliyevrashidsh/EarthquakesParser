@@ -121,7 +121,8 @@ def test_custom_keywords():
         keyword_results = [r for r in results if r.query == keyword]
         print(f"\n--- {keyword} ({len(keyword_results)} results) ---")
         for i, result in enumerate(keyword_results, 1):
-            print(f"{i}. {result.title[:60]}...")
+            if result.title is not None:
+                print(f"{i}. {result.title[:60]}...")
             print(f"   {result.link}")
 
 
