@@ -4,6 +4,40 @@ Utility scripts for the EarthquakesParser project.
 
 ## Available Scripts
 
+### [bump_version.py](bump_version.py)
+
+Automatically bumps project version and updates CHANGELOG based on conventional commits.
+
+**Usage:**
+
+```bash
+# Auto-detect version bump from commits
+python scripts/bump_version.py
+
+# Specify bump type manually
+python scripts/bump_version.py --type minor
+
+# Dry run (preview changes)
+python scripts/bump_version.py --dry-run
+
+# Skip tag creation
+python scripts/bump_version.py --no-tag
+```
+
+**What it does:**
+
+- Analyzes commits since last tag
+- Determines version bump type (major/minor/patch)
+- Updates version in `pyproject.toml` and `__init__.py`
+- Updates `CHANGELOG.md` with categorized commits
+- Creates git tag for new version
+
+**Version bump rules:**
+
+- `feat:` commits → **minor** version bump
+- `fix:` commits → **patch** version bump
+- `BREAKING CHANGE:` or `!` → **major** version bump
+
 ### [verify_setup.py](verify_setup.py)
 
 Verifies that the project is properly set up with all required files and structure.
