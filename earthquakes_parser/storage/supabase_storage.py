@@ -26,7 +26,7 @@ class SupabaseStorage(StorageBackend):
         self,
         url: Optional[str] = None,
         key: Optional[str] = None,
-        storage_bucket: str = "html-files",
+        storage_bucket: str = "storage",
     ):
         """Initialize Supabase storage backend.
 
