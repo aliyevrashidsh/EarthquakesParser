@@ -1,32 +1,15 @@
-# Supabase Storage Guide
+# Supabase Usage Guide
 
-This guide explains how to use Supabase as the storage backend for the EarthquakesParser (Fake Detection) project.
+This guide explains how to use Supabase utilities in the EarthquakesParser (Fake Detection) project.
 
 ## Overview
 
-The Supabase integration provides:
+The Supabase integration provides two independent utilities:
 
-- **PostgreSQL Database**: Store search results, parsed content, and fake detection analysis
-- **Object Storage**: Store raw HTML files (S3-compatible)
-- **Real-time capabilities**: Optional real-time subscriptions to data changes
-- **Automatic deduplication**: Prevent re-processing the same URLs
-- **Status tracking**: Track processing pipeline (pending → downloaded → parsed → analyzed)
+- **SupabaseDB**: PostgreSQL database operations (tables, CRUD)
+- **SupabaseFileStorage**: S3-compatible file storage operations (upload, download)
 
-## Architecture
-
-```
-Search Keywords
-    ↓
-DuckDuckGo Search → Save to Database (search_results table)
-    ↓
-Download HTML → Save to Supabase Storage + Update status
-    ↓
-Parse HTML → Save to Database (parsed_content table)
-    ↓
-Fake Detection → Save to Database (fake_detection_results table)
-```
-
-## Setup
+## Quick Start
 
 ### 1. Install Dependencies
 
@@ -35,7 +18,7 @@ Fake Detection → Save to Database (fake_detection_results table)
 uv pip install -e ".[supabase]"
 
 # Or install supabase separately
-uv pip install supabase
+uv pip install supabase python-dotenv
 ```
 
 ### 2. Create Supabase Project
@@ -43,389 +26,353 @@ uv pip install supabase
 1. Go to [supabase.com](https://supabase.com)
 2. Create a new project
 3. Wait for the database to be provisioned
-4. Get your project credentials:
-   - Project URL: `https://your-project.supabase.co`
-   - Service Role Key (for backend operations)
-   - Anon Key (for frontend operations, if needed)
+4. Get your credentials from project settings
 
-### 3. Set Environment Variables
+### 3. Configure Environment
+
+Create `.env` file in project root:
 
 ```bash
-export SUPABASE_URL="https://your-project.supabase.co"
-export SUPABASE_KEY="your-service-role-key"
-```
-
-Or create a `.env` file:
-
-```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-service-role-key
 ```
 
-### 4. Run Database Migrations
-
-Apply the schema migration to create tables:
+### 4. Apply Database Schema
 
 ```bash
-# Using Supabase CLI (recommended)
-supabase db push
-
-# Or manually via SQL Editor in Supabase Dashboard
-# Copy and paste the content of: supabase/migrations/20250122_create_fake_detection_schema.sql
+# Use Supabase CLI or SQL Editor in dashboard
+# Apply migration from: supabase/migrations/20250122_create_fake_detection_schema.sql
 ```
 
-### 5. Create Storage Bucket
+## Usage
 
-The storage bucket for HTML files will be created automatically on first use, but you can create it manually:
+### Import Utilities
 
-1. Go to Supabase Dashboard → Storage
-2. Create a new bucket named `html-files`
-3. Set to **Private** (not public)
+```python
+from earthquakes_parser import SupabaseDB, SupabaseFileStorage
+```
+
+### Database Operations
+
+```python
+# Initialize
+db = SupabaseDB()
+
+# Insert records
+search_results = [
+    {
+        'query': 'землетрясение Алматы',
+        'link': 'https://example.com/article',
+        'title': 'Earthquake in Almaty',
+        'status': 'pending'
+    }
+]
+ids = db.insert('search_results', search_results)
+
+# Select with filters
+pending = db.select(
+    'search_results',
+    filters={'status': 'pending'},
+    limit=10
+)
+
+# Update record
+db.update('search_results', record_id, {
+    'status': 'downloaded',
+    'html_storage_path': 'html/file.html'
+})
+
+# Check existence
+exists = db.exists('search_results', 'link', 'https://example.com')
+
+# Get by ID
+record = db.get_by_id('search_results', record_id)
+
+# Delete
+db.delete('search_results', record_id)
+```
+
+### File Storage Operations
+
+```python
+# Initialize
+files = SupabaseFileStorage(bucket_name='storage')
+
+# Upload file
+html_content = '<html>...</html>'
+path = files.upload('html/file.html', html_content, 'text/html')
+
+# Download file
+content = files.download('html/file.html')
+
+# Check if exists
+exists = files.exists('html/file.html')
+
+# List files
+file_list = files.list_files('html')
+
+# Delete file
+files.delete('html/file.html')
+```
+
+## Workflow Examples
+
+### Complete Search → Parse → Analyze Pipeline
+
+```python
+from earthquakes_parser import SupabaseDB, SupabaseFileStorage, KeywordSearcher, ContentParser
+from datetime import datetime
+
+# Initialize utilities
+db = SupabaseDB()
+files = SupabaseFileStorage(bucket_name='storage')
+
+# Step 1: Search and save results
+searcher = KeywordSearcher()
+search_results = searcher.search('землетрясение')
+
+# Save to database
+results_data = [
+    {
+        'query': 'землетрясение',
+        'link': r.link,
+        'title': r.title,
+        'status': 'pending'
+    }
+    for r in search_results
+]
+db.insert('search_results', results_data)
+
+# Step 2: Download HTML files
+pending = db.select('search_results', filters={'status': 'pending'}, limit=10)
+
+for _, row in pending.iterrows():
+    search_id = row['id']
+    url = row['link']
+
+    # Download (your logic)
+    html = download_html(url)
+
+    # Save to storage
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = f'html/{search_id}_{timestamp}.html'
+    files.upload(path, html, 'text/html')
+
+    # Update status
+    db.update('search_results', search_id, {
+        'status': 'downloaded',
+        'html_storage_path': path
+    })
+
+# Step 3: Parse HTML
+parser = ContentParser()
+downloaded = db.select('search_results', filters={'status': 'downloaded'}, limit=10)
+
+for _, row in downloaded.iterrows():
+    search_id = row['id']
+    html_path = row['html_storage_path']
+
+    # Load HTML
+    html = files.download(html_path)
+
+    # Parse
+    raw_text = parser.extract_raw_text(html)
+    main_text = parser.clean_with_llm(raw_text)
+
+    # Save parsed content
+    db.insert('parsed_content', [{
+        'search_result_id': search_id,
+        'raw_text': raw_text,
+        'main_text': main_text
+    }])
+
+    # Update status
+    db.update('search_results', search_id, {'status': 'parsed'})
+
+# Step 4: Fake detection analysis (future)
+# Your ML model logic here...
+```
 
 ## Database Schema
 
-### Table: `search_results`
+### Tables
 
-Stores metadata about search queries and found URLs.
+#### `search_results`
+Tracks search results and processing status.
 
-| Column              | Type          | Description                              |
-|---------------------|---------------|------------------------------------------|
-| id                  | UUID          | Primary key                              |
-| query               | TEXT          | Search keyword used                      |
-| link                | TEXT          | URL found (unique)                       |
-| title               | TEXT          | Page title                               |
-| site_filter         | TEXT          | Site filter (e.g., "instagram.com")      |
-| html_storage_path   | TEXT          | Path to HTML file in storage             |
-| status              | ENUM          | pending/downloaded/parsed/analyzed/failed|
-| searched_at         | TIMESTAMPTZ   | When the search was performed            |
+**Columns:**
+- `id` (UUID) - Primary key
+- `query` (TEXT) - Search query
+- `link` (TEXT) - URL (unique for deduplication)
+- `title` (TEXT) - Article title
+- `status` (ENUM) - Processing status
+- `html_storage_path` (TEXT) - Path in Supabase Storage
+- `created_at`, `updated_at` (TIMESTAMP)
 
-### Table: `parsed_content`
-
-Stores extracted and cleaned text from HTML files.
-
-| Column              | Type          | Description                              |
-|---------------------|---------------|------------------------------------------|
-| id                  | UUID          | Primary key                              |
-| search_result_id    | UUID          | Foreign key → search_results             |
-| raw_text            | TEXT          | Raw text from trafilatura                |
-| main_text           | TEXT          | LLM-cleaned text                         |
-| parsed_at           | TIMESTAMPTZ   | When parsing was performed               |
-
-### Table: `fake_detection_results`
-
-Stores fake news detection analysis results (for future use).
-
-| Column              | Type          | Description                              |
-|---------------------|---------------|------------------------------------------|
-| id                  | UUID          | Primary key                              |
-| parsed_content_id   | UUID          | Foreign key → parsed_content             |
-| is_fake             | BOOLEAN       | True if detected as fake                 |
-| confidence_score    | FLOAT         | Confidence score (0.0 to 1.0)            |
-| detection_method    | TEXT          | Model/method used for detection          |
-| metadata            | JSONB         | Additional metadata                      |
-| analyzed_at         | TIMESTAMPTZ   | When analysis was performed              |
-
-## Usage Examples
-
-### Basic Setup
-
-```python
-from earthquakes_parser import SupabaseStorage
-
-# Initialize storage
-storage = SupabaseStorage()
-
-# Or with custom bucket
-storage = SupabaseStorage(storage_bucket="my-html-files")
+**Status Flow:**
+```
+pending → downloaded → parsed → analyzed
+           ↓
+         failed
 ```
 
-### 1. Save Search Results
+#### `parsed_content`
+Stores extracted text from HTML.
 
-```python
-from earthquakes_parser import KeywordSearcher, SupabaseStorage
+**Columns:**
+- `id` (UUID) - Primary key
+- `search_result_id` (UUID) - Foreign key to search_results
+- `raw_text` (TEXT) - Raw extracted text
+- `main_text` (TEXT) - Cleaned/processed text
+- `created_at` (TIMESTAMP)
 
-# Initialize
-searcher = KeywordSearcher(delay=1.0)
-storage = SupabaseStorage()
+#### `fake_detection_results`
+Stores ML analysis results.
 
-# Load keywords
-keywords = KeywordSearcher.load_keywords_from_file("config/keywords.txt")
-
-# Search and save to database
-results_df = searcher.search_to_dataframe(
-    keywords,
-    max_results=10,
-    site_filter="instagram.com"
-)
-
-# Save to Supabase database (automatically deduplicates by URL)
-inserted_ids = storage.save_search_results(results_df)
-print(f"Inserted {len(inserted_ids)} search results")
-```
-
-### 2. Download and Store HTML
-
-```python
-import requests
-
-# Get pending URLs from database
-pending_df = storage.get_pending_urls(limit=100)
-
-for idx, row in pending_df.iterrows():
-    url = row['link']
-    search_result_id = row['id']
-
-    # Download HTML
-    response = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-    html_content = response.text
-
-    # Save to Supabase Storage (automatically updates status to 'downloaded')
-    storage_path = storage.save_html_to_storage(
-        html_content,
-        url,
-        search_result_id
-    )
-
-    print(f"Saved HTML to: {storage_path}")
-```
-
-### 3. Parse HTML and Save Content
-
-```python
-from earthquakes_parser import ContentParser
-
-# Initialize parser
-parser = ContentParser(model_name="google/flan-t5-large")
-
-# Get downloaded but not parsed URLs
-downloaded_df = storage.get_downloaded_not_parsed(limit=50)
-
-for idx, row in downloaded_df.iterrows():
-    search_result_id = row['id']
-    html_storage_path = row['html_storage_path']
-
-    # Retrieve HTML from storage
-    html_content = storage.get_html_from_storage(html_storage_path)
-
-    if html_content:
-        # Extract and clean text
-        import trafilatura
-        raw_text = trafilatura.extract(html_content)
-        main_text = parser.clean_with_llm(raw_text)
-
-        # Save parsed content (automatically updates status to 'parsed')
-        parsed_id = storage.save_parsed_content(
-            search_result_id,
-            raw_text,
-            main_text
-        )
-
-        print(f"Parsed content saved with ID: {parsed_id}")
-```
-
-### 4. Check for Duplicates
-
-```python
-# Before downloading, check if URL already exists
-url = "https://example.com/news/earthquake"
-
-if storage.url_exists(url):
-    print("URL already in database, skipping...")
-else:
-    print("New URL, proceeding with download...")
-```
-
-### 5. Query Database (Advanced)
-
-You can use the Supabase client directly for custom queries:
-
-```python
-# Get all search results from the last 7 days
-from datetime import datetime, timedelta
-
-seven_days_ago = (datetime.now() - timedelta(days=7)).isoformat()
-
-response = storage.client.table("search_results") \\
-    .select("*") \\
-    .gte("searched_at", seven_days_ago) \\
-    .order("searched_at", desc=True) \\
-    .execute()
-
-import pandas as pd
-recent_results = pd.DataFrame(response.data)
-print(f"Found {len(recent_results)} results from last 7 days")
-```
-
-## Processing Pipeline Example
-
-Complete workflow from search to storage:
-
-```python
-from earthquakes_parser import KeywordSearcher, ContentParser, SupabaseStorage
-import requests
-
-# Initialize components
-searcher = KeywordSearcher(delay=1.0)
-parser = ContentParser()
-storage = SupabaseStorage()
-
-# Load keywords
-keywords = KeywordSearcher.load_keywords_from_file("config/keywords.txt")
-
-# Step 1: Search and save results
-print("Step 1: Searching...")
-results_df = searcher.search_to_dataframe(keywords, max_results=5)
-inserted_ids = storage.save_search_results(results_df)
-print(f"Saved {len(inserted_ids)} search results")
-
-# Step 2: Download HTML for pending URLs
-print("Step 2: Downloading HTML...")
-pending_df = storage.get_pending_urls(limit=10)
-
-for idx, row in pending_df.iterrows():
-    try:
-        response = requests.get(
-            row['link'],
-            timeout=15,
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
-
-        storage_path = storage.save_html_to_storage(
-            response.text,
-            row['link'],
-            row['id']
-        )
-        print(f"✓ Downloaded: {row['link']}")
-
-    except Exception as e:
-        print(f"✗ Error downloading {row['link']}: {e}")
-
-# Step 3: Parse downloaded HTML
-print("Step 3: Parsing content...")
-downloaded_df = storage.get_downloaded_not_parsed(limit=10)
-
-for idx, row in downloaded_df.iterrows():
-    html = storage.get_html_from_storage(row['html_storage_path'])
-
-    if html:
-        parsed_data = parser.parse_url(row['link'])
-
-        storage.save_parsed_content(
-            row['id'],
-            parsed_data['raw_text'],
-            parsed_data['main_text']
-        )
-        print(f"✓ Parsed: {row['link']}")
-
-print("Pipeline complete!")
-```
+**Columns:**
+- `id` (UUID) - Primary key
+- `parsed_content_id` (UUID) - Foreign key to parsed_content
+- `is_fake` (BOOLEAN) - Detection result
+- `confidence` (FLOAT) - Confidence score
+- `reasoning` (TEXT) - Explanation
+- `model_version` (TEXT) - ML model version
+- `created_at` (TIMESTAMP)
 
 ## Best Practices
 
-### 1. Use Service Role Key
-
-For backend operations (downloading, parsing), use the **service role key** which has full access:
-
-```bash
-export SUPABASE_KEY="your-service-role-key"
-```
-
-### 2. Enable Row Level Security (RLS)
-
-The migration automatically enables RLS policies. For production, customize policies:
-
-```sql
--- Example: Only allow authenticated users to read
-CREATE POLICY "Read access for authenticated users"
-ON search_results FOR SELECT
-TO authenticated
-USING (true);
-```
-
-### 3. Batch Operations
-
-Use batch operations to reduce API calls:
+### 1. **Use Utilities in Business Logic**
 
 ```python
-# Good: Save 100 results at once
-storage.save_search_results(results_df, batch_size=100)
+# ✅ Good: Business logic in domain module
+class ContentParser:
+    def __init__(self, db: SupabaseDB, files: SupabaseFileStorage):
+        self.db = db
+        self.files = files
 
-# Avoid: Saving one by one in a loop
+    def parse_and_save(self, search_id):
+        # Business logic here
+        # Use utilities for storage
+        pass
+
+# ❌ Bad: Business logic in utility module
+# Don't add business methods to SupabaseDB or SupabaseFileStorage
 ```
 
-### 4. Error Handling
+### 2. **Batch Inserts for Performance**
 
-The storage backend automatically updates status to 'failed' on errors:
+```python
+# ✅ Good: Batch insert
+db.insert('search_results', search_results, batch_size=100)
+
+# ❌ Bad: Individual inserts in loop
+for result in search_results:
+    db.insert('search_results', [result])  # Slow!
+```
+
+### 3. **Check Existence Before Insert**
+
+```python
+# Avoid duplicate URLs
+url = 'https://example.com/article'
+if not db.exists('search_results', 'link', url):
+    db.insert('search_results', [{'link': url, ...}])
+```
+
+### 4. **Use Filters for Efficient Queries**
+
+```python
+# ✅ Good: Filter at database level
+pending = db.select('search_results', filters={'status': 'pending'}, limit=10)
+
+# ❌ Bad: Load all, filter in Python
+all_results = db.select('search_results')  # Loads everything!
+pending = all_results[all_results['status'] == 'pending']
+```
+
+### 5. **Handle Errors Gracefully**
 
 ```python
 try:
-    storage.save_html_to_storage(html, url, id)
+    ids = db.insert('search_results', data)
+    if not ids:
+        print("Insert failed, no IDs returned")
 except Exception as e:
-    # Status is already set to 'failed' in the database
-    print(f"Error: {e}")
+    print(f"Error inserting data: {e}")
 ```
 
-### 5. Monitor Storage Usage
+## Configuration Options
 
-Check your storage usage in Supabase Dashboard:
-- Storage → Usage
-- Database → Database Size
-
-## Migration from AWS S3
-
-If you were using S3Storage, here's how to migrate:
-
-### Before (AWS S3):
+### Database
 
 ```python
-from earthquakes_parser.storage.s3_storage import S3Storage
+# Use environment variables
+db = SupabaseDB()
 
-storage = S3Storage(bucket_name="my-bucket", prefix="earthquakes")
-storage.save_dataframe(df, "results.csv")
+# Or pass explicitly
+db = SupabaseDB(
+    url='https://your-project.supabase.co',
+    key='your-service-role-key'
+)
 ```
 
-### After (Supabase):
+### File Storage
 
 ```python
-from earthquakes_parser import SupabaseStorage
+# Default bucket name is 'storage'
+files = SupabaseFileStorage()
 
-storage = SupabaseStorage(storage_bucket="my-bucket")
-storage.save_search_results(df)  # Saves to database instead
+# Custom bucket
+files = SupabaseFileStorage(bucket_name='my-custom-bucket')
+
+# Explicit credentials
+files = SupabaseFileStorage(
+    url='https://your-project.supabase.co',
+    key='your-service-role-key',
+    bucket_name='storage'
+)
 ```
 
 ## Troubleshooting
 
-### "Project reference in URL is not valid"
+### Import Error
 
-Make sure your `SUPABASE_URL` includes the full project URL:
+```
+ImportError: cannot import name 'SupabaseDB'
+```
 
+**Solution:** Install supabase package
 ```bash
-# Correct
-export SUPABASE_URL="https://abcdefghijk.supabase.co"
-
-# Incorrect
-export SUPABASE_URL="abcdefghijk"
+pip install supabase
 ```
 
-### "Bucket not found"
+### Connection Error
 
-Create the bucket manually or check that `_ensure_bucket_exists()` runs successfully.
+```
+ValueError: Supabase URL and key are required
+```
 
-### RLS Policy Errors
-
-If you get permission errors, ensure you're using the **service role key** (not anon key):
-
+**Solution:** Set environment variables or pass credentials explicitly
 ```python
-# Use service role key for backend operations
-storage = SupabaseStorage(
-    url="https://your-project.supabase.co",
-    key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."  # Service role key
-)
+db = SupabaseDB(url='https://...', key='...')
 ```
 
-## Resources
+### Column Not Found
 
-- [Supabase Documentation](https://supabase.com/docs)
-- [Supabase Python Client](https://supabase.com/docs/reference/python/introduction)
-- [Supabase Storage](https://supabase.com/docs/guides/storage)
-- [Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
+```
+Could not find the 'column_name' column in the schema cache
+```
+
+**Solution:** Check column name matches database schema, apply migrations
+
+### Bucket Not Found
+
+The bucket is created automatically on first use. If you see errors, check:
+1. Credentials are correct
+2. Service role key has storage permissions
+
+## See Also
+
+- [SUPABASE_ARCHITECTURE.md](SUPABASE_ARCHITECTURE.md) - Detailed architecture explanation
+- [SUPABASE_QUICKSTART.md](SUPABASE_QUICKSTART.md) - Quick reference
+- [examples/supabase_example.py](../examples/supabase_example.py) - Complete examples
+- [scripts/test_new_architecture.py](../scripts/test_new_architecture.py) - Test script
