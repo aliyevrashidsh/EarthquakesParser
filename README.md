@@ -7,7 +7,7 @@ keyword-based web searches, content extraction, and storage management with supp
 
 - 🔍 **Keyword Search**: Search for earthquake-related content using DuckDuckGo
 - 📄 **Content Parsing**: Extract and clean web content using trafilatura and LLM
-- 💾 **Flexible Storage**: Support for CSV files, AWS S3, and Supabase (database + object storage)
+- 💾 **Flexible Storage**: Support for CSV files and Supabase (PostgreSQL + S3-compatible storage)
 - 🧪 **Well-tested**: Comprehensive test suite with pytest
 - 📦 **Modern Tooling**: Uses `uv` for fast dependency management
 
@@ -35,14 +35,11 @@ uv pip install -e ".[dev]"
 pip install -e ".[dev]"
 ```
 
-### For Storage Options
+### For Supabase Support
 
 ```bash
 # For Supabase support (recommended for fake detection project)
 uv pip install -e ".[supabase]"
-
-# For AWS S3 support
-uv pip install -e ".[s3]"
 ```
 
 ## Quick Start
@@ -91,39 +88,28 @@ storage.save_records(results, "parsed_content.json")
 ### Using Supabase Storage (Recommended)
 
 ```python
-from earthquakes_parser import SupabaseStorage
+from earthquakes_parser import SupabaseDB, SupabaseFileStorage
 
-# Initialize Supabase storage (uses SUPABASE_URL and SUPABASE_KEY env vars)
-storage = SupabaseStorage()
+# Initialize utilities (use SUPABASE_URL and SUPABASE_KEY env vars)
+db = SupabaseDB()
+files = SupabaseFileStorage(bucket_name='storage')
 
 # Save search results to database
-inserted_ids = storage.save_search_results(results_df)
+inserted_ids = db.insert('search_results', results_data)
 
 # Check if URL exists (deduplication)
-if not storage.url_exists("https://example.com"):
-    # Download and save HTML to storage
-    storage.save_html_to_storage(html_content, url, search_result_id)
+if not db.exists('search_results', 'link', 'https://example.com'):
+    # Save HTML to storage
+    files.upload('html/file.html', html_content, 'text/html')
+
+    # Update database
+    db.update('search_results', search_id, {'status': 'downloaded'})
 
 # Get pending URLs for processing
-pending_df = storage.get_pending_urls(limit=100)
+pending_df = db.select('search_results', filters={'status': 'pending'}, limit=100)
 ```
 
 See [docs/SUPABASE_USAGE.md](docs/SUPABASE_USAGE.md) for complete guide.
-
-### Using S3 Storage
-
-```python
-from earthquakes_parser.storage.s3_storage import S3Storage
-
-# Initialize S3 storage
-storage = S3Storage(bucket_name="my-bucket", prefix="earthquakes")
-
-# Save data to S3
-storage.save_dataframe(df, "results.csv")
-
-# Load data from S3
-df = storage.load("results.csv")
-```
 
 ## Project Structure
 
@@ -239,19 +225,11 @@ See [config/README.md](config/README.md) for more configuration options.
 
 ### Environment Variables
 
-#### For Supabase Storage (Recommended)
+#### For Supabase Storage
 
 ```bash
 export SUPABASE_URL="https://your-project.supabase.co"
 export SUPABASE_KEY="your-service-role-key"
-```
-
-#### For AWS S3 Storage
-
-```bash
-export AWS_ACCESS_KEY_ID=your_key_id
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_DEFAULT_REGION=us-east-1
 ```
 
 ## CI/CD

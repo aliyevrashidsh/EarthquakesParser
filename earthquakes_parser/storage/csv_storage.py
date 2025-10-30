@@ -1,4 +1,4 @@
-"""CSV file storage backend."""
+"""CSV file storage utility."""
 
 import json
 from pathlib import Path
@@ -6,11 +6,9 @@ from typing import Any, List, Union
 
 import pandas as pd
 
-from earthquakes_parser.storage.base import StorageBackend
 
-
-class CSVStorage(StorageBackend):
-    """Storage backend for CSV files."""
+class CSVStorage:
+    """Simple utility for saving/loading CSV and JSON files locally."""
 
     def __init__(self, base_path: str = "."):
         """Initialize CSV storage.
@@ -80,6 +78,24 @@ class CSVStorage(StorageBackend):
             True if file exists.
         """
         return self._get_path(key).exists()
+
+    def save_dataframe(self, df: pd.DataFrame, key: str) -> None:
+        """Save a DataFrame to CSV.
+
+        Args:
+            df: DataFrame to save.
+            key: Filename to save to.
+        """
+        self.save(df, key)
+
+    def save_records(self, records: List[dict], key: str) -> None:
+        """Save a list of records to CSV or JSON.
+
+        Args:
+            records: List of dictionaries to save.
+            key: Filename to save to.
+        """
+        self.save(records, key)
 
     def append(self, data: pd.DataFrame, key: str) -> None:
         """Append data to an existing CSV file.
