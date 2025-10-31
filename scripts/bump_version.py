@@ -82,7 +82,7 @@ class VersionBumper:
             Tuple of (bump_type, categorized_commits)
         """
         bump_type = "patch"  # Default to patch
-        categories = {
+        categories: dict[str, list[str]] = {
             "feat": [],
             "fix": [],
             "docs": [],
