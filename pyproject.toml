@@ -27,6 +27,8 @@ dependencies = [
     "trafilatura>=1.6.0",
     "transformers>=4.30.0",
     "torch>=2.0.0",
+    "python-dotenv>=1.2.1",
+    "supabase>=2.22.1",
 ]
 
 [project.optional-dependencies]

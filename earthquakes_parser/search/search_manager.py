@@ -2,8 +2,9 @@
 
 from typing import List, Optional
 
-from earthquakes_parser.search.searcher import KeywordSearcher, SearchResult
 from earthquakes_parser.storage.supabase import SupabaseDB
+from earthquakes_parser.search.base_searcher import BaseSearcher
+from earthquakes_parser.search.search_result import SearchResult
 
 
 class SearchManager:
@@ -15,15 +16,15 @@ class SearchManager:
     - Managing search result status workflow
     """
 
-    def __init__(self, db: SupabaseDB, searcher: Optional[KeywordSearcher] = None):
+    def __init__(self, db: SupabaseDB, searcher: BaseSearcher):
         """Initialize search manager.
 
         Args:
             db: Supabase database utility for persistence.
-            searcher: Optional KeywordSearcher instance. Creates default if None.
+            searcher: Instance of a searcher implementing BaseSearcher interface.
         """
         self.db = db
-        self.searcher = searcher or KeywordSearcher(delay=1.0)
+        self.searcher = searcher
 
     def search_and_save(
         self,
@@ -204,5 +205,5 @@ class SearchManager:
         Returns:
             Statistics dict from search_and_save().
         """
-        keywords = KeywordSearcher.load_keywords_from_file(keywords_file)
+        keywords = self.searcher.load_keywords_from_file(keywords_file)
         return self.search_and_save(keywords, max_results, site_filter, skip_existing)
