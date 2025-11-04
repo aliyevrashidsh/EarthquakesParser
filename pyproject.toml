@@ -26,7 +26,8 @@ dependencies = [
     "requests>=2.31.0",
     "trafilatura>=1.6.0",
     "transformers>=4.30.0",
-    "torch>=2.0.0",
+    "openai>=2.7.1",
+    "beautifulsoup4>=4.14.2",
 ]
 
 [project.optional-dependencies]
