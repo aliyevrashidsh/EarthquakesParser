@@ -2,6 +2,9 @@
 
 import sys
 from pathlib import Path
+from typing import Any
+
+import pandas as pd
 
 from earthquakes_parser import ContentParser, CSVStorage
 
@@ -19,7 +22,12 @@ def main():
 
     # Load search results (assuming you've run example_search.py first)
     if storage.exists("web_results.csv"):
-        df = storage.load("web_results.csv")
+        loaded_data: Any = storage.load("web_results.csv")
+        df = (
+            pd.DataFrame(loaded_data)
+            if not isinstance(loaded_data, pd.DataFrame)
+            else loaded_data
+        )
         print(f"Loaded {len(df)} URLs to parse")
 
         # Parse first few URLs

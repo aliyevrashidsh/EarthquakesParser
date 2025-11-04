@@ -46,7 +46,7 @@ class ContentParser:
             text = trafilatura.extract(
                 html, include_comments=False, include_tables=False
             )
-            return text if text else ""
+            return str(text) if text else ""
         except Exception as e:
             return f"Error loading: {e}"
 

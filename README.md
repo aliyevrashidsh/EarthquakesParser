@@ -7,7 +7,7 @@ keyword-based web searches, content extraction, and storage management with supp
 
 - 🔍 **Keyword Search**: Search for earthquake-related content using DuckDuckGo
 - 📄 **Content Parsing**: Extract and clean web content using trafilatura and LLM
-- 💾 **Flexible Storage**: Support for CSV files and AWS S3 (extensible for other backends)
+- 💾 **Flexible Storage**: Support for CSV files and Supabase (PostgreSQL + S3-compatible storage)
 - 🧪 **Well-tested**: Comprehensive test suite with pytest
 - 📦 **Modern Tooling**: Uses `uv` for fast dependency management
 
@@ -35,10 +35,11 @@ uv pip install -e ".[dev]"
 pip install -e ".[dev]"
 ```
 
-### For S3 support
+### For Supabase Support
 
 ```bash
-uv pip install -e ".[s3]"
+# For Supabase support (recommended for fake detection project)
+uv pip install -e ".[supabase]"
 ```
 
 ## Quick Start
@@ -84,20 +85,31 @@ results = parser.parse_csv("web_results.csv")
 storage.save_records(results, "parsed_content.json")
 ```
 
-### Using S3 Storage
+### Using Supabase Storage (Recommended)
 
 ```python
-from earthquakes_parser.storage.s3_storage import S3Storage
+from earthquakes_parser import SupabaseDB, SupabaseFileStorage
 
-# Initialize S3 storage
-storage = S3Storage(bucket_name="my-bucket", prefix="earthquakes")
+# Initialize utilities (use SUPABASE_URL and SUPABASE_KEY env vars)
+db = SupabaseDB()
+files = SupabaseFileStorage(bucket_name='storage')
 
-# Save data to S3
-storage.save_dataframe(df, "results.csv")
+# Save search results to database
+inserted_ids = db.insert('search_results', results_data)
 
-# Load data from S3
-df = storage.load("results.csv")
+# Check if URL exists (deduplication)
+if not db.exists('search_results', 'link', 'https://example.com'):
+    # Save HTML to storage
+    files.upload('html/file.html', html_content, 'text/html')
+
+    # Update database
+    db.update('search_results', search_id, {'status': 'downloaded'})
+
+# Get pending URLs for processing
+pending_df = db.select('search_results', filters={'status': 'pending'}, limit=100)
 ```
+
+See [docs/SUPABASE_USAGE.md](docs/SUPABASE_USAGE.md) for complete guide.
 
 ## Project Structure
 
@@ -213,12 +225,11 @@ See [config/README.md](config/README.md) for more configuration options.
 
 ### Environment Variables
 
-For S3 storage, configure AWS credentials:
+#### For Supabase Storage
 
 ```bash
-export AWS_ACCESS_KEY_ID=your_key_id
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_DEFAULT_REGION=us-east-1
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_KEY="your-service-role-key"
 ```
 
 ## CI/CD
@@ -246,6 +257,7 @@ See [RELEASE_POLICY.md](RELEASE_POLICY.md) for detailed release guidelines.
 ## Documentation
 
 - **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
+- **[Supabase Usage Guide](docs/SUPABASE_USAGE.md)** - Complete Supabase integration guide
 - **[Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute
 - **[Release Policy](docs/RELEASE_POLICY.md)** - Versioning and releases
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture overview

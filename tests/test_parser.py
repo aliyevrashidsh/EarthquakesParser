@@ -52,8 +52,8 @@ class TestContentParser:
     def clean_with_llm(self, raw_text: str) -> str:
         if raw_text.startswith("Error loading:"):
             return raw_text
-        response = self.llm(raw_text)
-        return response[0]["generated_text"]
+        response = self.llm(raw_text)  # type: ignore[attr-defined]
+        return str(response[0]["generated_text"])
 
     def test_clean_with_llm_error_input(self, parser):
         """Test LLM cleaning with error input."""
