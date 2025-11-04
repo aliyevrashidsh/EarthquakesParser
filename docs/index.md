@@ -6,7 +6,7 @@ A Python library for searching and parsing earthquake-related content from the w
 
 - [🚀 Quick Start Guide](QUICK_START.md) - Get started in 5 minutes
 - [🏗️ Project Structure](PROJECT_STRUCTURE.md) - Architecture overview
-- [🤝 Contributing](CONTRIBUTING.md) - How to contribute
+- [🤝 Contributing](CONTRIBUTING_GUIDE.md) - How to contribute
 - [📦 Release Policy](RELEASE_POLICY.md) - Versioning and releases
 - [✅ Pre-commit Guide](PRE_COMMIT_GUIDE.md) - Code quality hooks
 - [✨ Setup Complete](SETUP_COMPLETE.md) - Detailed setup info
