@@ -1,4 +1,4 @@
-# Contributing to EarthquakesParser
+# Contributing
 
 Thank you for considering contributing to EarthquakesParser! This document provides guidelines and instructions for contributing.
 
@@ -124,7 +124,7 @@ Example:
 ```python
 def test_search_with_site_filter():
     """Test search with site filter."""
-    searcher = KeywordSearcher(delay=0.1)
+    searcher = GoogleSearcher(delay=0.1)
     results = searcher.search("earthquake", site_filter="instagram.com")
     assert all("instagram.com" in r.link for r in results)
 ```

@@ -16,7 +16,7 @@ google_analytics: # Add your GA tracking ID here
 
 # Repository info
 github:
-  repository_url: https://github.com/yourusername/earthquakes-parser
+  repository_url: https://github.com/FarabiUniversity/EarthquakesParser
   is_project_page: true
 
 # Build settings
