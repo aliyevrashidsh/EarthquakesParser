@@ -6,7 +6,6 @@ This library provides tools for earthquake-related content search and parsing.
 
 __version__ = "0.1.0"
 
-from earthquakes_parser.parser.content_parser import ContentParser
 from earthquakes_parser.search.search_manager import SearchManager
 from earthquakes_parser.search.searcher import KeywordSearcher
 from earthquakes_parser.storage.csv_storage import CSVStorage
@@ -18,7 +17,6 @@ try:
     __all__ = [
         "KeywordSearcher",
         "SearchManager",
-        "ContentParser",
         "CSVStorage",
         "SupabaseDB",
         "SupabaseFileStorage",
@@ -27,6 +25,5 @@ except ImportError:
     __all__ = [
         "KeywordSearcher",
         "SearchManager",
-        "ContentParser",
         "CSVStorage",
     ]
