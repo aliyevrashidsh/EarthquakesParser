@@ -1,56 +1,42 @@
 """Main parser manager orchestrating the parsing workflow."""
-import os
+
 from typing import Optional
 from urllib.parse import urlparse
-
-from dotenv import load_dotenv
-import pandas as pd
 
 from earthquakes_parser.storage.supabase.database import SupabaseDB
 from earthquakes_parser.parser.data_extractor import DataExtractor
 from earthquakes_parser.parser.models import ParsedContent
 from earthquakes_parser.parser.schema_extractor import SchemaExtractor
 from earthquakes_parser.parser.schema_manager import SchemaManager
+from earthquakes_parser.storage.supabase.file_storage import SupabaseFileStorage
+from earthquakes_parser.search.search_manager import SearchManager
 
 
 class ParserManager:
     """Orchestrates the parsing workflow for search results."""
 
     def __init__(
-            self,
-            db: SupabaseDB,
-            openai_base_url: str = "http://192.168.8.22:9999/v1",
-            openai_api_key: str = "api-key",
+        self,
+        db: SupabaseDB,
+        file_storage: SupabaseFileStorage,
+        openai_base_url: str = "http://192.168.8.22:9999/v1",
+        openai_api_key: str = "api-key",
     ):
         """Initialize parser manager.
 
         Args:
             db: Database instance.
+            file_storage: File storage instance for HTML files.
             openai_base_url: Base URL for OpenAI-compatible API.
             openai_api_key: API key for OpenAI.
         """
-        load_dotenv()
         self.db = db
+        self.file_storage = file_storage
+        self.search_manager = SearchManager(db)
         self.schema_manager = SchemaManager(db)
-        if openai_base_url:
-            self.openai_base_url = openai_base_url
-        else:
-            self.openai_base_url = os.getenv("OPENAI_BASE_URL")
-        if openai_api_key:
-            self.openai_api_key = openai_api_key
-        else:
-            self.openai_api_key = os.getenv("OPENAI_API_KEY")
-
-        if not all([self.openai_base_url, self.openai_api_key]):
-            raise ValueError(
-                "Missing required environment variables: "
-                "openai_base_url, openai_api_key"
-            )
-
         self.schema_extractor = SchemaExtractor(openai_base_url, openai_api_key)
         self.data_extractor = DataExtractor()
 
-        self.search_results_table = "search_results"
         self.parsed_content_table = "parsed_content"
 
     def _get_domain(self, url: str) -> str:
@@ -66,12 +52,12 @@ class ParserManager:
         return parsed.netloc
 
     def _save_parsed_content(
-            self,
-            search_result_id: str,
-            url: str,
-            main_text: list,
-            date: Optional[str],
-            schema_id: str,
+        self,
+        search_result_id: str,
+        url: str,
+        main_text: list,
+        date: Optional[str],
+        schema_id: str,
     ) -> Optional[str]:
         """Save parsed content to database.
 
@@ -103,46 +89,65 @@ class ParserManager:
         except Exception as e:
             print(f"❌ Error saving parsed content: {e}")
             return None
-
-    def parse_url(
-            self,
-            url: str,
-            title: str,
-            search_result_id: str,
-            force_reextract: bool = False,
+#парсит одну запись
+    def parse_record(
+        self,
+        record: dict,
+        force_reextract: bool = False,
     ) -> bool:
-        """Parse a single URL.
+        """Parse a single record from search_results.
 
         Args:
-            url: URL to parse.
-            title: Page title.
-            search_result_id: ID from search_results table.
+            record: Dict with keys: id, link, title, html_storage_path.
             force_reextract: Force schema re-extraction even if exists.
 
         Returns:
             True if successful, False otherwise.
         """
+        search_result_id = str(record["id"])
+        url = record["link"]
+        title = record["title"]
+        html_storage_path = record.get("html_storage_path")
+
         domain = self._get_domain(url)
-        print(f"\n{'=' * 100}")
+
+        print(f"\n{'='*100}")
         print(f"🌐 Processing: {title}")
         print(f"🔗 URL: {url}")
         print(f"📍 Domain: {domain}")
+        print(f"📁 Storage path: {html_storage_path}")
 
-        # Step 1: Check if schema exists
+        # Step 1: Download HTML from storage
+        if not html_storage_path:
+            print(f"❌ No HTML storage path for this record")
+            self.search_manager.mark_as(search_result_id, "failed")
+            return False
+
+        html = self.file_storage.download(html_storage_path)
+        if not html:
+            print(f"❌ Failed to download HTML from storage")
+            self.search_manager.mark_as(search_result_id, "failed")
+            return False
+
+        print(f"✅ HTML downloaded ({len(html)} characters)")
+
+        # Step 2: Check if schema exists
         schema = self.schema_manager.get_by_domain(domain)
 
         if not schema or force_reextract:
             print(f"📝 No schema found for {domain}, extracting...")
-            schema = self.schema_extractor.extract_schema(url, title, domain)
+            schema = self.schema_extractor.extract_schema(html, title, domain)
 
             if not schema:
                 print(f"❌ Failed to extract schema for {domain}")
+                self.search_manager.mark_as(search_result_id, "failed")
                 return False
 
             # Save schema
             schema_id = self.schema_manager.save(schema)
             if not schema_id:
                 print(f"❌ Failed to save schema for {domain}")
+                self.search_manager.mark_as(search_result_id, "failed")
                 return False
 
             schema.id = schema_id
@@ -153,31 +158,29 @@ class ParserManager:
         # Check if page is valid
         if not schema.is_valid:
             print(f"⚠️ Page is not about earthquakes, skipping...")
+            self.search_manager.mark_as(search_result_id, "failed")
             return False
 
-        # Step 2: Fetch HTML and extract data
-        html = self.schema_extractor.fetch_html(url)
-        if not html:
-            print(f"❌ Failed to fetch HTML from {url}")
-            return False
-
-        # Extract data
+        # Step 3: Extract data
         result = self.data_extractor.extract(html, schema)
 
-        # Step 3: Check if extraction was successful
-        if self.data_extractor.validate_extraction(result):
-            print(f"⚠️ Extraction failed (both fields empty), re-extracting schema...")
+        # Step 4: Check if extraction was successful
+        # Failed only if main_text is empty (date can be None)
+        if not result.main_text:
+            print(f"⚠️ Extraction failed (main_text empty), re-extracting schema...")
 
             # Re-extract schema
-            schema = self.schema_extractor.extract_schema(url, title, domain)
+            schema = self.schema_extractor.extract_schema(html, title, domain)
             if not schema:
                 print(f"❌ Failed to re-extract schema")
+                self.search_manager.mark_as(search_result_id, "failed")
                 return False
 
             # Save updated schema
             schema_id = self.schema_manager.save(schema)
             if not schema_id:
                 print(f"❌ Failed to save re-extracted schema")
+                self.search_manager.mark_as(search_result_id, "failed")
                 return False
 
             schema.id = schema_id
@@ -185,13 +188,14 @@ class ParserManager:
             # Try extraction again
             result = self.data_extractor.extract(html, schema)
 
-            if self.data_extractor.validate_extraction(result):
-                print(f"❌ Re-extraction also failed, skipping...")
+            if not result.main_text:
+                print(f"❌ Re-extraction also failed, marking as failed...")
+                self.search_manager.mark_as(search_result_id, "failed")
                 return False
 
-        # Step 4: Save parsed content
+        # Step 5: Save parsed content
         print(f"📌 Extracted text: {len(result.main_text)} paragraphs")
-        print(f"📅 Date: {result.date}")
+        print(f"📅 Date: {result.date or 'Not found (OK)'}")
 
         content_id = self._save_parsed_content(
             search_result_id=search_result_id,
@@ -203,34 +207,43 @@ class ParserManager:
 
         if content_id:
             print(f"✅ Content saved with ID: {content_id}")
+            # Mark as parsed
+            self.search_manager.mark_as(search_result_id, "parsed")
             return True
         else:
             print(f"❌ Failed to save content")
+            self.search_manager.mark_as(search_result_id, "failed")
             return False
-
-    def parse_from_dataframe(self, df: pd.DataFrame) -> dict:
-        """Parse URLs from DataFrame.
+#парсит все downloaded записи
+    def parse_downloaded(self, limit: Optional[int] = None) -> dict:
+        """Parse all downloaded URLs from search_results table.
 
         Args:
-            df: DataFrame with columns: id, link, title
+            limit: Maximum number of records to process.
 
         Returns:
             Dictionary with statistics.
         """
+        print(f"📥 Loading downloaded search results from database...")
+
+        # Get records with status='downloaded'
+        records = self.search_manager.get_urls(status="downloaded", limit=limit or 100)
+
+        if not records:
+            print("⚠️ No downloaded search results found in database")
+            return {"total": 0, "successful": 0, "failed": 0}
+
+        print(f"✅ Loaded {len(records)} downloaded results")
+
         stats = {
-            "total": len(df),
+            "total": len(records),
             "successful": 0,
             "failed": 0,
-            "skipped": 0,
         }
 
-        for _, row in df.iterrows():
+        for record in records:
             try:
-                search_result_id = str(row["id"])
-                url = row["link"]
-                title = row["title"]
-
-                success = self.parse_url(url, title, search_result_id)
+                success = self.parse_record(record)
 
                 if success:
                     stats["successful"] += 1
@@ -238,45 +251,28 @@ class ParserManager:
                     stats["failed"] += 1
 
             except Exception as e:
-                print(f"❌ Error processing row: {e}")
+                print(f"❌ Error processing record: {e}")
                 stats["failed"] += 1
 
-        print(f"\n{'=' * 100}")
+                # Mark as failed in DB
+                try:
+                    self.search_manager.mark_as(str(record["id"]), "failed")
+                except:
+                    pass
+
+        print(f"\n{'='*100}")
         print(f"📊 Parsing complete:")
         print(f"   Total: {stats['total']}")
         print(f"   ✅ Successful: {stats['successful']}")
         print(f"   ❌ Failed: {stats['failed']}")
-        print(f"{'=' * 100}")
+        print(f"{'='*100}")
 
         return stats
 
-    def parse_all_from_db(
-            self,
-            limit: Optional[int] = None,
-            filters: Optional[dict] = None,
-    ) -> dict:
-        """Parse all URLs from search_results table.
-
-        Args:
-            limit: Maximum number of records to process.
-            filters: Additional filters for search_results query.
+    def get_statistics(self) -> dict:
+        """Get parsing statistics from database.
 
         Returns:
-            Dictionary with statistics.
+            Dictionary with statistics for each status.
         """
-        print(f"📥 Loading search results from database...")
-
-        df = self.db.select(
-            self.search_results_table,
-            columns="id,link,title",
-            filters=filters,
-            limit=limit,
-        )
-
-        if df.empty:
-            print("⚠️ No search results found in database")
-            return {"total": 0, "successful": 0, "failed": 0}
-
-        print(f"✅ Loaded {len(df)} search results")
-
-        return self.parse_from_dataframe(df)
+        return self.search_manager.get_statistics()

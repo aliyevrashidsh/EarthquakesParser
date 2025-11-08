@@ -2,24 +2,23 @@
 
 import json
 import re
-from typing import Optional, Tuple
+from typing import Optional
 
 import requests
-from bs4 import BeautifulSoup
 from openai import OpenAI
 
-from earthquakes_parser.parser.models import PageSchema
+from .models import PageSchema
 
 
 class SchemaExtractor:
-    """Extracts page schemas using GPT and handles HTML fetching."""
+    """Extracts page schemas using GPT."""
 
     def __init__(
-            self,
-            openai_base_url: str = "http://192.168.8.22:9999/v1",
-            openai_api_key: str = "api-key",
-            model: str = "gpt-4",
-            max_tokens: int = 80000,
+        self,
+        openai_base_url: str = "http://192.168.8.22:9999/v1",
+        openai_api_key: str = "api-key",
+        model: str = "gpt-4",
+        max_tokens: int = 80000,
     ):
         """Initialize schema extractor.
 
@@ -33,25 +32,6 @@ class SchemaExtractor:
         self.model = model
         self.max_tokens = max_tokens
         self.tokenizer_url = "http://192.168.8.22:9999/extras/tokenize/count"
-
-    def fetch_html(self, url: str) -> Optional[str]:
-        """Fetch HTML content from URL.
-
-        Args:
-            url: URL to fetch.
-
-        Returns:
-            Prettified HTML or None if failed.
-        """
-        try:
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, "html.parser")
-            return soup.prettify()
-        except Exception as e:
-            print(f"❌ Error fetching {url}: {e}")
-            return None
 
     def count_tokens(self, text: str) -> int:
         """Count tokens in text.
@@ -143,23 +123,18 @@ Here is the HTML content:
         return html
 
     def extract_schema(
-            self, url: str, title: str, domain: str
+        self, html: str, title: str, domain: str
     ) -> Optional[PageSchema]:
-        """Extract schema from URL using GPT.
+        """Extract schema from HTML using GPT.
 
         Args:
-            url: URL to analyze.
+            html: HTML content (already downloaded).
             title: Page title.
             domain: Domain name.
 
         Returns:
             PageSchema object or None if failed.
         """
-        # Fetch HTML
-        html = self.fetch_html(url)
-        if not html:
-            return None
-
         # Truncate if needed
         html = self._truncate_html(html, title)
 
@@ -168,7 +143,7 @@ Here is the HTML content:
 
         # Call GPT
         try:
-            print(f"🔍 Analyzing: {title} ({url})")
+            print(f"🔍 Analyzing: {title}")
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[

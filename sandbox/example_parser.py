@@ -13,7 +13,6 @@ from earthquakes_parser.parser.parser_manager import ParserManager
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
 def main():
     df = pd.read_csv("sandbox/data/web_results.csv")
     df.to_csv("sandbox/data/web_results.csv",)
