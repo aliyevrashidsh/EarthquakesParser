@@ -3,6 +3,7 @@
 from typing import Optional
 from urllib.parse import urlparse
 
+from earthquakes_parser.search import GoogleSearcher, DDGSearcher
 from earthquakes_parser.storage.supabase.database import SupabaseDB
 from earthquakes_parser.parser.data_extractor import DataExtractor
 from earthquakes_parser.parser.models import ParsedContent
@@ -32,7 +33,8 @@ class ParserManager:
         """
         self.db = db
         self.file_storage = file_storage
-        self.search_manager = SearchManager(db)
+        self.searcher = DDGSearcher()
+        self.search_manager = SearchManager(self.db, self.searcher)
         self.schema_manager = SchemaManager(db)
         self.schema_extractor = SchemaExtractor(openai_base_url, openai_api_key)
         self.data_extractor = DataExtractor()
@@ -54,29 +56,26 @@ class ParserManager:
     def _save_parsed_content(
         self,
         search_result_id: str,
-        url: str,
         main_text: list,
         date: Optional[str],
-        schema_id: str,
+        page_schema_id: str,
     ) -> Optional[str]:
         """Save parsed content to database.
 
         Args:
             search_result_id: ID of search result.
-            url: URL of the page.
             main_text: Extracted main text.
             date: Extracted date.
-            schema_id: Schema ID used for extraction.
+            page_schema_id: Schema ID used for extraction.
 
         Returns:
             Parsed content ID or None if failed.
         """
         content = ParsedContent(
             search_result_id=search_result_id,
-            url=url,
             main_text=main_text,
             date=date,
-            schema_id=schema_id,
+            page_schema_id=page_schema_id,
         )
 
         try:
@@ -199,10 +198,9 @@ class ParserManager:
 
         content_id = self._save_parsed_content(
             search_result_id=search_result_id,
-            url=url,
             main_text=result.main_text,
             date=result.date,
-            schema_id=schema.id,
+            page_schema_id=schema.id,
         )
 
         if content_id:

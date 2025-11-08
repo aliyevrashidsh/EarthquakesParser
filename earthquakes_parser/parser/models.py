@@ -32,10 +32,9 @@ class ParsedContent:
     """Extracted content from a webpage."""
 
     search_result_id: str
-    url: str
     main_text: List[str]
     date: Optional[str]
-    schema_id: str
+    page_schema_id: str
     parsed_at: Optional[datetime] = None
     id: Optional[str] = None
 
@@ -43,10 +42,9 @@ class ParsedContent:
         """Convert to dictionary for database insertion."""
         return {
             "search_result_id": self.search_result_id,
-            "url": self.url,
             "main_text": self.main_text,
             "date": self.date,
-            "schema_id": self.schema_id,
+            "page_schema_id": self.page_schema_id,
         }
 
 
