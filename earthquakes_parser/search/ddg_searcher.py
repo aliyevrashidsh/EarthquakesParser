@@ -16,25 +16,45 @@ class DDGSearcher(BaseSearcher):
         self.delay = delay
 
     def search(
-        self, query: str, max_results: int = 5, site_filter: Optional[str] = None
+            self,
+            query: str,
+            max_results: int = 5,
+            site_filter: Optional[str] = None,
+            offset: int = 0
     ) -> List[SearchResult]:
+        """DuckDuckGo search with optional site filter and offset support.
+
+        Args:
+            query: Search query string.
+            max_results: Number of results to return.
+            site_filter: Optional site filter (e.g., 'instagram.com').
+            offset: Number of results to skip (used for pagination).
+
+        Returns:
+            List of SearchResult objects.
+        """
         results = []
         search_query = f"site:{site_filter} {query}" if site_filter else query
 
         try:
-            for result in self.ddgs.text(search_query):
-                link = result.get("href", "")
-                title = result.get("title", "")
+            all_items = list(self.ddgs.text(search_query))
+            filtered_items = []
+
+            for item in all_items:
+                link = item.get("href", "")
+                title = item.get("title", "")
 
                 if site_filter and site_filter not in link:
                     continue
 
-                results.append(SearchResult(query=query, link=link, title=title))
-                if len(results) >= max_results:
-                    break
+                filtered_items.append(SearchResult(query=query, link=link, title=title))
+
+            # Apply offset and limit
+            results = filtered_items[offset:offset + max_results]
 
         except Exception as e:
             print(f"DDG search error for '{query}': {e}")
 
         time.sleep(self.delay)
         return results
+

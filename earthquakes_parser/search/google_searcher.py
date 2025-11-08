@@ -4,7 +4,6 @@ import os
 import time
 from typing import List, Optional
 import httpx
-from dotenv import load_dotenv
 
 from earthquakes_parser.search.base_searcher import BaseSearcher
 from earthquakes_parser.search.search_result import SearchResult
@@ -32,8 +31,6 @@ class GoogleSearcher(BaseSearcher):
 
         self.delay = delay
 
-        load_dotenv()
-
         self.GOOGLE_SEARCH_API_KEY = key or os.getenv("GOOGLE_SEARCH_API_KEY")
         self.GOOGLE_SEARCH_ENDPOINT = endpoint or os.getenv("GOOGLE_SEARCH_ENDPOINT")
         self.CX = cx or os.getenv("CX")
@@ -45,10 +42,14 @@ class GoogleSearcher(BaseSearcher):
             )
 
     def search(
-        self, query: str, max_results: int = 5, site_filter: Optional[str] = None
+            self,
+            query: str,
+            max_results: int = 5,
+            site_filter: Optional[str] = None,
+            offset: int = 1
     ) -> List[SearchResult]:
+        """Perform a Google Custom Search with optional site filter and offset."""
         search_query = f"site:{site_filter} {query}" if site_filter else query
-        offset = 1
         results_returned = 0
         items: List[dict] = []
 
@@ -67,9 +68,11 @@ class GoogleSearcher(BaseSearcher):
                 if response.status_code == 200:
                     data = response.json()
                     batch = data.get("items", [])
+                    if not batch:
+                        break  # No more results
                     items.extend(batch)
-                    offset += count
                     results_returned += len(batch)
+                    offset += len(batch)
                 else:
                     raise RuntimeError(
                         f"Google Search API error {response.status_code}: {response.text}"
@@ -77,13 +80,12 @@ class GoogleSearcher(BaseSearcher):
 
                 time.sleep(self.delay)
 
-        results = [
+        return [
             SearchResult(
                 query=query,
                 link=item.get("link", ""),
-                title=item.get("title", "No title")
+                title=item.get("title", "No title"),
             )
             for item in items
         ]
 
-        return results

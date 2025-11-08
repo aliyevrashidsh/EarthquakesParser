@@ -10,7 +10,7 @@ class BaseSearcher(ABC):
 
     @abstractmethod
     def search(
-        self, query: str, max_results: int = 5, site_filter: Optional[str] = None
+        self, query: str, max_results: int = 5, site_filter: Optional[str] = None, offset: int = 0
     ) -> List[SearchResult]:
         """Perform a search for a single query."""
         pass
