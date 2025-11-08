@@ -26,10 +26,10 @@ dependencies = [
     "requests>=2.31.0",
     "trafilatura>=1.6.0",
     "transformers>=4.30.0",
-    "openai>=2.7.1",
-    "beautifulsoup4>=4.14.2",
+    "torch>=2.0.0",
     "python-dotenv>=1.2.1",
     "supabase>=2.22.1",
+    "selenium>=4.32.0",
 ]
 
 [project.optional-dependencies]

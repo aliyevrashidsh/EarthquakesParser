@@ -1,62 +1,67 @@
-# SearchManager - Business Logic for Search Operations
+# SearchManager – Earthquake Search Workflow
 
 ## Overview
 
-`SearchManager` provides business logic for managing earthquake search operations with database persistence. It wraps `KeywordSearcher` (search utility) and `SupabaseDB` (database utility) to implement the complete search workflow.
+`SearchManager` coordinates the full pipeline for earthquake-related search and data collection. It wraps:
+
+- `BaseSearcher`: abstract interface for search engines
+- `GoogleSearcher` / `DDGSearcher`: concrete implementations
+- `HTMLDownloade`: modular HTML fetcher supporting both [bs4](https://pypi.org/project/beautifulsoup4/) and [selenium](https://pypi.org/project/selenium/) strategies for dynamic or static page loading
+- `SupabaseDB`: database utility for persistence and status tracking
 
 ## Architecture
-
 ```
-SearchManager (Business Logic)
-    ├── KeywordSearcher (Search Utility)
-    └── SupabaseDB (Database Utility)
+SearchManager
+├── BaseSearcher (abstract interface)
+│   ├── GoogleSearcher
+│   └── DDGSearcher
+├── HTMLDownloader
+│   ├── fetch_with_bs4()
+│   └── fetch_with_selenium()
+└── SupabaseDB
 ```
 
-**Responsibilities:**
-- Search for earthquake-related content
-- Save search results with deduplication
-- Manage search result status workflow
-- Provide statistics and reporting
+### Responsibilities
+
+- Perform keyword-based searches
+- Deduplicate and persist results
+- Track status: `pending → downloaded → parsed → analyzed`
+- Provide statistics and progress insights
+
+---
 
 ## Quick Start
-
 ```python
-from earthquakes_parser import SearchManager, SupabaseDB
+from earthquakes_parser import SearchManager, SupabaseDB, GoogleSearcher
 
-# Initialize
 db = SupabaseDB()
-search_manager = SearchManager(db)
+searcher = GoogleSearcher()
+search_manager = SearchManager(db, searcher)
 
-# Search and save with deduplication
 stats = search_manager.search_and_save(
-    keywords=["землетрясение", "earthquake"],
+    keywords=["earthquake", "землетрясение"],
     max_results=5,
-    skip_existing=True  # Automatic deduplication
+    skip_existing=True
 )
 
-print(f"Found: {stats['found']}, New: {stats['new']}, Skipped: {stats['skipped']}")
+print(f"New: {stats['new']}, Skipped: {stats['skipped']}")
 ```
 
 ## API Reference
 
 ### Constructor
-
 ```python
-SearchManager(db: SupabaseDB, searcher: Optional[KeywordSearcher] = None)
+SearchManager(db: SupabaseDB, searcher: Optional[BaseSearcher] = None)
 ```
 
-**Parameters:**
-- `db`: Supabase database utility for persistence
-- `searcher`: Optional KeywordSearcher instance (creates default if None)
+- `db`: SupabaseDB instance for persistence
+- `searcher`: Optional searcher implementing `BaseSearcher` (defaults to `GoogleSearcher` with env config)
 
-### Methods
+### `search_and_save()`
 
-#### `search_and_save()`
-
-Search for keywords and save results to database with deduplication.
-
+Search for keywords and save results to database.
 ```python
-stats = search_manager.search_and_save(
+search_manager.search_and_save(
     keywords: List[str],
     max_results: int = 5,
     site_filter: Optional[str] = None,
@@ -64,111 +69,63 @@ stats = search_manager.search_and_save(
 ) -> dict
 ```
 
-**Parameters:**
-- `keywords`: List of search keywords
-- `max_results`: Maximum results per keyword
-- `site_filter`: Optional site filter (e.g., 'instagram.com')
-- `skip_existing`: Skip URLs that already exist (default: True)
+**Returns:**
+```python
+{
+    'searched': int,
+    'found': int,
+    'new': int,
+    'skipped': int
+}
+```
+
+### `get_urls()`
+
+Get URLs with status.
+```python
+search_manager.get_urls(status: str = "pending", limit: int = 100) -> List[dict]
+```
+
+### `mark_as()`
+
+Mark a result as downloaded.
+```python
+search_manager.mark_as_downloaded(
+    search_result_id: str,
+    status: str
+) -> bool
+```
+
+Вот документация в том же стиле для метода `download_html()`:
+
+---
+
+### `download_html()`
+
+Download HTML content for pending URLs and upload to Supabase storage.
+
+```python
+search_manager.download_html(storage, fetch_with="selenium", limit=50) -> dict
+```
+
+**Args:**
+- `storage`: Instance of `SupabaseFileStorage` used for uploading HTML files.
+- `fetch_with`: HTML fetch strategy — `"bs4"` for static pages or `"selenium"` for dynamic content.
+- `limit`: Maximum number of pending URLs to process.
 
 **Returns:**
 ```python
 {
-    'searched': int,  # Total keywords searched
-    'found': int,     # Total results found
-    'new': int,       # New results saved
-    'skipped': int    # Existing results skipped
+    'downloaded': int,  # Successfully fetched and uploaded
+    'failed': int       # Failed to fetch or upload
 }
 ```
 
-**Business Logic:**
-1. Search using KeywordSearcher
-2. Check for duplicates (deduplication)
-3. Save new results with status='pending'
-4. Return statistics
+### `get_statistics()`
 
-**Example:**
+Get status breakdown.
 ```python
-stats = search_manager.search_and_save(
-    keywords=["землетрясение Алматы", "earthquake Kazakhstan"],
-    max_results=10,
-    skip_existing=True
-)
-
-if stats['new'] > 0:
-    print(f"✓ Saved {stats['new']} new URLs")
-if stats['skipped'] > 0:
-    print(f"⚠ Skipped {stats['skipped']} existing URLs")
-```
-
-#### `get_pending_urls()`
-
-Get URLs that need to be downloaded.
-
-```python
-pending_urls = search_manager.get_pending_urls(limit: int = 100) -> List[dict]
-```
-
-**Returns:** List of dicts with keys: `id`, `query`, `link`, `title`, `status`
-
-**Example:**
-```python
-pending = search_manager.get_pending_urls(limit=10)
-
-for url_data in pending:
-    print(f"Download: {url_data['link']}")
-    # Your download logic here...
-```
-
-#### `mark_as_downloaded()`
-
-Mark a search result as downloaded.
-
-```python
-success = search_manager.mark_as_downloaded(
-    search_result_id: str,
-    html_storage_path: str
-) -> bool
-```
-
-**Business Logic:** Updates status from 'pending' to 'downloaded'
-
-**Example:**
-```python
-success = search_manager.mark_as_downloaded(
-    search_id,
-    html_storage_path="html/abc123_20230101.html"
-)
-
-if success:
-    print("✓ Marked as downloaded")
-```
-
-#### `mark_as_failed()`
-
-Mark a search result as failed.
-
-```python
-success = search_manager.mark_as_failed(
-    search_result_id: str,
-    error_message: str = ""
-) -> bool
-```
-
-**Example:**
-```python
-try:
-    # Download logic...
-    pass
-except Exception as e:
-    search_manager.mark_as_failed(search_id, str(e))
-```
-
-#### `get_statistics()`
-
-Get search statistics by status.
-
-```python
-stats = search_manager.get_statistics() -> dict
+search_manager.get_statistics() -> dict
 ```
 
 **Returns:**
@@ -183,19 +140,11 @@ stats = search_manager.get_statistics() -> dict
 }
 ```
 
-**Example:**
+### `search_with_keywords_file()`
+
+Search using keywords from a file.
 ```python
-stats = search_manager.get_statistics()
-print(f"Pending downloads: {stats['pending']}")
-print(f"Ready to parse: {stats['downloaded']}")
-```
-
-#### `search_with_keywords_file()`
-
-Search using keywords from file.
-
-```python
-stats = search_manager.search_with_keywords_file(
+search_manager.search_with_keywords_file(
     keywords_file: str,
     max_results: int = 5,
     site_filter: Optional[str] = None,
@@ -203,133 +152,37 @@ stats = search_manager.search_with_keywords_file(
 ) -> dict
 ```
 
-**Example:**
-```python
-# config/keywords.txt
-# землетрясение
-# сейсмоактивность
-
-stats = search_manager.search_with_keywords_file(
-    "config/keywords.txt",
-    max_results=10
-)
-```
-
-## Complete Workflow Example
-
-```python
-from earthquakes_parser import SearchManager, SupabaseDB, SupabaseFileStorage
-import requests
-
-# Initialize utilities
-db = SupabaseDB()
-files = SupabaseFileStorage()
-search_manager = SearchManager(db)
-
-# Step 1: Search and save
-print("Step 1: Searching...")
-stats = search_manager.search_and_save(
-    keywords=["землетрясение", "earthquake"],
-    max_results=10,
-    skip_existing=True
-)
-print(f"✓ Saved {stats['new']} new URLs")
-
-# Step 2: Download HTML files
-print("\nStep 2: Downloading...")
-pending = search_manager.get_pending_urls(limit=5)
-
-for url_data in pending:
-    search_id = url_data['id']
-    url = url_data['link']
-
-    try:
-        # Download HTML
-        response = requests.get(url, timeout=10)
-        html_content = response.text
-
-        # Save to storage
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        path = f"html/{search_id}_{timestamp}.html"
-        files.upload(path, html_content, 'text/html')
-
-        # Mark as downloaded
-        search_manager.mark_as_downloaded(search_id, path)
-        print(f"✓ Downloaded: {url}")
-
-    except Exception as e:
-        # Mark as failed
-        search_manager.mark_as_failed(search_id, str(e))
-        print(f"✗ Failed: {url} - {e}")
-
-# Step 3: Check statistics
-print("\nStep 3: Statistics")
-stats = search_manager.get_statistics()
-print(f"Total: {stats['total']}")
-print(f"Pending: {stats['pending']}")
-print(f"Downloaded: {stats['downloaded']}")
-```
-
 ## Status Workflow
-
 ```
 pending → downloaded → parsed → analyzed
            ↓
          failed
 ```
 
-**Status Management:**
-- `pending`: Initial status after search
-- `downloaded`: HTML saved to storage
-- `parsed`: Content extracted from HTML
-- `analyzed`: Fake detection completed
-- `failed`: Error occurred at any stage
-
 ## Benefits
 
-### ✅ Automatic Deduplication
-Prevents duplicate URLs in database using `skip_existing` flag.
+✅ **Deduplication**  
+Avoids duplicate URLs using `skip_existing`.
 
-```python
-# First run
-stats = search_manager.search_and_save(keywords, max_results=10)
-# stats['new'] = 10, stats['skipped'] = 0
+✅ **Status Tracking**  
+Each result moves through a clear pipeline.
 
-# Second run with same keywords
-stats = search_manager.search_and_save(keywords, max_results=10)
-# stats['new'] = 0, stats['skipped'] = 10
+✅ **Statistics**  
+Track progress and completion rate.
+
+✅ **Modular Design**  
+Clean separation of logic:
 ```
-
-### ✅ Status Tracking
-Pipeline workflow with clear status transitions.
-
-```python
-# Get work items for each stage
-pending = search_manager.get_pending_urls()        # Stage 1: Download
-downloaded = db.select('search_results', filters={'status': 'downloaded'})  # Stage 2: Parse
-parsed = db.select('search_results', filters={'status': 'parsed'})  # Stage 3: Analyze
-```
-
-### ✅ Statistics & Monitoring
-Visibility into pipeline progress.
-
-```python
-stats = search_manager.get_statistics()
-completion_rate = (stats['analyzed'] / stats['total']) * 100 if stats['total'] > 0 else 0
-print(f"Completion: {completion_rate:.1f}%")
-```
-
-### ✅ Clean Separation
-Business logic separate from utilities.
-
-```
-SearchManager:  Business logic (what to do)
-KeywordSearcher: Search utility (how to search)
-SupabaseDB:     Database utility (how to store)
+SearchManager:         Orchestrates full pipeline and business logic
+BaseSearcher:          Abstract interface for search engines
+GoogleSearcher/DDGSearcher:  Concrete search implementations
+HTMLDownloader:        Modular HTML fetcher (bs4 or selenium)
+SupabaseDB:            Persistence and status tracking
+SupabaseFileStorage:   HTML file upload and linking
 ```
 
 ## See Also
 
-- [SUPABASE_ARCHITECTURE.md](SUPABASE_ARCHITECTURE.md) - Overall architecture
-- [SUPABASE_USAGE.md](SUPABASE_USAGE.md) - Supabase utilities guide
-- [scripts/test_search_manager.py](../scripts/test_search_manager.py) - Test script
+- `SUPABASE_ARCHITECTURE.md` – Overall architecture
+- `SUPABASE_USAGE.md` – Supabase utilities guide
+- `scripts/test_search_manager.py` – Test script

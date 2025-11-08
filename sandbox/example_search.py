@@ -3,7 +3,10 @@
 import sys
 from pathlib import Path
 
-from earthquakes_parser import CSVStorage, KeywordSearcher
+from earthquakes_parser import CSVStorage, SupabaseDB, SupabaseFileStorage
+from earthquakes_parser.search import GoogleSearcher, SearchManager
+from dotenv import load_dotenv
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -12,28 +15,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 def main():
     """Demonstrate searching for earthquake-related keywords."""
     # Initialize components
-    searcher = KeywordSearcher(delay=1.0)
-    storage = CSVStorage(base_path="sandbox/data")
+    load_dotenv()
+    searcher = GoogleSearcher(delay=1.0)
+    keywords = ["землетрясение в алматы", "магнитуда землетрясение в алматы", "эпицентр землетрясение в алматы"]
 
-    # Load keywords from config file
-    # keywords = KeywordSearcher.load_keywords_from_file("config/keywords.txt")
+    database = SupabaseDB()
+    search_manager = SearchManager(db=database, searcher=searcher)
+    search_results_stat = search_manager.search_and_save(keywords=keywords, max_results=1)
+    print(search_results_stat)
 
-    # Or use example keywords for quick testing
-    keywords = ["землетрясение", "магнитуда", "эпицентр"]
-
-    # Search Instagram
-    print("Searching Instagram...")
-    instagram_df = searcher.search_to_dataframe(
-        keywords, max_results=3, site_filter="instagram.com"
-    )
-    storage.save_dataframe(instagram_df, "instagram_results.csv")
-    print(f"Saved {len(instagram_df)} Instagram results")
-
-    # Search general web
-    print("\nSearching web...")
-    web_df = searcher.search_to_dataframe(keywords, max_results=3)
-    storage.save_dataframe(web_df, "web_results.csv")
-    print(f"Saved {len(web_df)} web results")
+    file_storage = SupabaseFileStorage(bucket_name="html-files")
+    download_results_stat = search_manager.download_html(file_storage, fetch_with="selenium")
+    print(download_results_stat)
 
 
 if __name__ == "__main__":
