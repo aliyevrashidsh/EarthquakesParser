@@ -156,11 +156,11 @@ class SearchManager:
         """
         stats = {"downloaded": 0, "failed": 0}
         urls = self.get_urls(status="pending", limit=limit)
-        downloader = HTMLDownloader()
+        downloader = HTMLDownloader(fetch_with=fetch_with)
 
         for item in urls:
             url = item["link"]
-            html = downloader.fetch_html(url, fetch_with=fetch_with)
+            html = downloader.fetch_html(url)
 
             if not html.strip():
                 self.mark_as(item["id"], "failed")

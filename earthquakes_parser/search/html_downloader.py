@@ -7,8 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from urllib.parse import urlparse
-from shutil import which
-
 
 class HTMLDownloader:
     def __init__(self, fetch_with: Literal["bs4", "selenium"] = "selenium"):
@@ -41,9 +39,6 @@ class HTMLDownloader:
 
     @staticmethod
     def _fetch_with_selenium(url: str, timeout: int = 10) -> str:
-        if which("chromedriver") is None:
-            raise "[Selenium] ERROR: ChromeDriver not found in PATH."
-
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--disable-gpu")
