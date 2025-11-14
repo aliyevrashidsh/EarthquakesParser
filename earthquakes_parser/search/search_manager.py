@@ -196,23 +196,12 @@ class SearchManager:
                 'failed': int
             }
         """
-        stats = {
-            "total": 0,
-            "pending": 0,
-            "downloaded": 0,
-            "parsed": 0,
-            "analyzed": 0,
-            "failed": 0,
-        }
+        df = self.db.select("search_results", limit=None)
 
-        # Get counts for each status
-        for status in ["pending", "downloaded", "parsed", "analyzed", "failed"]:
-            df = self.db.select(
-                "search_results", filters={"status": status}, limit=None
-            )
-            count = len(df)
-            stats[status] = count
-            stats["total"] += count
+        counts = df["status"].value_counts()
+
+        stats = {status: counts.get(status, 0) for status in ["pending", "downloaded", "parsed", "analyzed", "failed"]}
+        stats["total"] = int(counts.sum())
 
         return stats
 
